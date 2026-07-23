@@ -1,0 +1,118 @@
+@import 'tailwindcss';
+
+/* ==========================================================================
+   Design tokens — PartyClass
+   Se declaran aquí (Tailwind v4) para que todo el sistema use una sola
+   fuente de verdad de color, radio y sombra.
+   ========================================================================== */
+@theme {
+  --color-marca-50: #f5f3ff;
+  --color-marca-100: #ede9fe;
+  --color-marca-200: #ddd6fe;
+  --color-marca-300: #c4b5fd;
+  --color-marca-400: #a78bfa;
+  --color-marca-500: #8b5cf6;
+  --color-marca-600: #7c3aed;
+  --color-marca-700: #6d28d9;
+  --color-marca-800: #5b21b6;
+  --color-marca-900: #4c1d95;
+
+  --color-tinta-50: #f8fafc;
+  --color-tinta-100: #f1f5f9;
+  --color-tinta-200: #e2e8f0;
+  --color-tinta-300: #cbd5e1;
+  --color-tinta-400: #94a3b8;
+  --color-tinta-500: #64748b;
+  --color-tinta-600: #475569;
+  --color-tinta-700: #334155;
+  --color-tinta-800: #1e293b;
+  --color-tinta-900: #0f172a;
+
+  --font-sans:
+    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+
+  --radius-tarjeta: 0.875rem;
+
+  --shadow-suave: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06);
+  --shadow-tarjeta: 0 1px 3px 0 rgb(15 23 42 / 0.06), 0 8px 24px -8px rgb(15 23 42 / 0.10);
+  --shadow-elevada: 0 10px 40px -12px rgb(15 23 42 / 0.22);
+}
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-tinta-50);
+    color: var(--color-tinta-800);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-marca-600);
+    outline-offset: 2px;
+  }
+
+  /* Evita el zoom automático de iOS en inputs de menos de 16px */
+  @media (max-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Utilidades del sistema de diseño
+   -------------------------------------------------------------------------- */
+@layer components {
+  .barra-scroll-fina {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-tinta-300) transparent;
+  }
+
+  .barra-scroll-fina::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .barra-scroll-fina::-webkit-scrollbar-thumb {
+    background-color: var(--color-tinta-300);
+    border-radius: 9999px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Canvas de firma: bloquea el scroll del navegador mientras se dibuja.
+   Sin esto, firmar en móvil arrastra la página.
+   -------------------------------------------------------------------------- */
+.lienzo-firma {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: crosshair;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
