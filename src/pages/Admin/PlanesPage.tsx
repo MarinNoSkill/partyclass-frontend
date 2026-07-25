@@ -10,6 +10,7 @@ import {
   Link2,
   Pencil,
   Plus,
+  Power,
   Ticket,
   Trash2,
 } from 'lucide-react';
@@ -23,13 +24,17 @@ import { PlanForm } from './PlanForm';
 import { useToast } from '@/contexts/ToastContext';
 import { mensajeDeError } from '@/hooks/useMensajeError';
 import {
+  useActualizarPlan,
   useEliminarBoleta,
   useEliminarPlan,
   useEliminarPlantilla,
+  useEliminarPresentacion,
   usePlanesAdmin,
   useSubirBoleta,
   useSubirPlantilla,
+  useSubirPresentacion,
 } from '@/hooks/usePlanes';
+import { cn } from '@/utils/cn';
 import type { PlanConImagen } from '@/types/planes.types';
 
 const MAX_PLANTILLA_BYTES = 15 * 1024 * 1024;
@@ -382,6 +387,9 @@ function FilaPlan({ plan, alEditar, alEliminar, alVerImagen }: PropsFila) {
   const quitarConvenio = useEliminarPlantilla();
   const subirBoleta = useSubirBoleta();
   const quitarBoleta = useEliminarBoleta();
+  const subirPresentacion = useSubirPresentacion();
+  const quitarPresentacion = useEliminarPresentacion();
+  const actualizar = useActualizarPlan();
   const toast = useToast();
 
   const conMensaje = async (accion: Promise<unknown>, ok: string) => {
@@ -392,6 +400,13 @@ function FilaPlan({ plan, alEditar, alEliminar, alVerImagen }: PropsFila) {
       toast.error(mensajeDeError(fallo));
     }
   };
+
+  /** Bloquea o reactiva el plan sin abrir el formulario. Un plan inactivo no se ofrece al estudiante. */
+  const alternarActivo = () =>
+    conMensaje(
+      actualizar.mutateAsync({ id: plan.id, datos: { activo: !plan.activo } }),
+      plan.activo ? `Plan "${plan.nombre}" bloqueado.` : `Plan "${plan.nombre}" reactivado.`,
+    );
 
   return (
     <li className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center">
@@ -419,6 +434,24 @@ function FilaPlan({ plan, alEditar, alEliminar, alVerImagen }: PropsFila) {
           }
           alQuitar={() => void quitarBoleta.mutateAsync(plan.id).catch(() => undefined)}
           alVer={() => plan.boletaUrl && alVerImagen(plan.boletaUrl, `Boleta · ${plan.nombre}`)}
+        />
+        <ControlImagenPlan
+          etiqueta="Presentación"
+          url={plan.presentacionUrl}
+          presente={Boolean(plan.presentacion_ruta)}
+          subiendo={subirPresentacion.isPending}
+          quitando={quitarPresentacion.isPending}
+          alSubir={(archivo) =>
+            conMensaje(
+              subirPresentacion.mutateAsync({ id: plan.id, archivo }),
+              'Imagen de presentación actualizada.',
+            )
+          }
+          alQuitar={() => void quitarPresentacion.mutateAsync(plan.id).catch(() => undefined)}
+          alVer={() =>
+            plan.presentacionUrl &&
+            alVerImagen(plan.presentacionUrl, `Presentación · ${plan.nombre}`)
+          }
         />
       </div>
 
@@ -475,6 +508,24 @@ function FilaPlan({ plan, alEditar, alEliminar, alVerImagen }: PropsFila) {
 
       {/* Acciones */}
       <div className="flex shrink-0 gap-2">
+        <Button
+          variante="fantasma"
+          tamano="sm"
+          cargando={actualizar.isPending}
+          onClick={alternarActivo}
+          aria-label={plan.activo ? 'Bloquear plan' : 'Reactivar plan'}
+          title={
+            plan.activo
+              ? 'Bloquear: dejará de mostrarse al estudiante'
+              : 'Reactivar: volverá a estar disponible'
+          }
+        >
+          <Power
+            className={cn('size-4', plan.activo ? 'text-emerald-600' : 'text-tinta-400')}
+            aria-hidden
+          />
+        </Button>
+
         <Button variante="fantasma" tamano="sm" onClick={alEditar} aria-label="Editar plan">
           <Pencil className="size-4" aria-hidden />
         </Button>

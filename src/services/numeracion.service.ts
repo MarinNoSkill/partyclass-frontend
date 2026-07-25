@@ -1,6 +1,7 @@
 import { http } from './http';
 import type { ApiRespuesta, ApiRespuestaPaginada } from '@/types/api.types';
 import type {
+  ConciliacionResultado,
   EstadisticasNumeracion,
   FiltrosNumeracion,
   NumeracionVista,
@@ -56,6 +57,22 @@ export const numeracionService = {
 
   async planes(): Promise<Plan[]> {
     const { data } = await http.get<ApiRespuesta<Plan[]>>('/admin/numeracion/planes');
+    return data.data;
+  },
+
+  /**
+   * Sube el Excel de abonados y devuelve los números asignados que NO están en
+   * él (candidatos a desasignar).
+   */
+  async conciliar(archivo: File): Promise<ConciliacionResultado> {
+    const formulario = new FormData();
+    formulario.append('archivo', archivo);
+
+    const { data } = await http.post<ApiRespuesta<ConciliacionResultado>>(
+      '/admin/numeracion/conciliar',
+      formulario,
+      { headers: { 'Content-Type': undefined } },
+    );
     return data.data;
   },
 };

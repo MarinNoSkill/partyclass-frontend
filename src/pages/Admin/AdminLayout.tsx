@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   LogOut,
   Settings,
-  ShieldCheck,
   Table2,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -38,8 +37,8 @@ export function AdminLayout() {
     <div className="min-h-dvh bg-tinta-50">
       <header className="bg-tinta-900 text-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
-          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-marca-600">
-            <ShieldCheck className="size-5" aria-hidden />
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white/95 p-1">
+            <img src="/logo.webp" alt="PartyClass" className="h-full w-auto" />
           </span>
 
           <div className="mr-auto min-w-0">

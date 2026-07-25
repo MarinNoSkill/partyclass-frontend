@@ -80,6 +80,26 @@ export const planesService = {
     );
     return data.data;
   },
+
+  /** Sube o reemplaza la imagen de presentación (la que ve el estudiante). */
+  async subirPresentacion(id: string, archivo: File): Promise<PlanConImagen> {
+    const formulario = new FormData();
+    formulario.append('archivo', archivo);
+
+    const { data } = await http.put<ApiRespuesta<PlanConImagen>>(
+      `/admin/planes/${id}/presentacion`,
+      formulario,
+      { headers: { 'Content-Type': undefined } },
+    );
+    return data.data;
+  },
+
+  async eliminarPresentacion(id: string): Promise<PlanConImagen> {
+    const { data } = await http.delete<ApiRespuesta<PlanConImagen>>(
+      `/admin/planes/${id}/presentacion`,
+    );
+    return data.data;
+  },
 };
 
 /** Catálogo del wizard. Solo requiere API key, no sesión de administrador. */

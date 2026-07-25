@@ -1,7 +1,17 @@
 import { useEffect } from 'react';
-import { useForm, type Resolver } from 'react-hook-form';
+import { Controller, useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { GrupoCampos, Input, Select } from './FormField';
+import { InputFecha } from './InputFecha';
+import { Combobox } from './Combobox';
+import {
+  CIUDADES,
+  COLEGIOS_MEDELLIN,
+  EPS,
+  GRADOS,
+  GRUPOS_DEPENDENCIA,
+  gradoTieneGrupo,
+} from '@/data/catalogos';
 import {
   ESTUDIANTE_VACIO,
   esquemaEstudiante,
@@ -34,7 +44,12 @@ function aValoresFormulario(estudiante: Estudiante | EstudianteFormulario | null
     fecha_nacimiento: estudiante.fecha_nacimiento,
     genero: estudiante.genero ?? '',
     grado: estudiante.grado ?? '',
+    grupo: ('grupo' in estudiante ? estudiante.grupo : '') ?? '',
     institucion: estudiante.institucion ?? '',
+    eps: ('eps' in estudiante ? estudiante.eps : '') ?? '',
+    representante_grupo:
+      ('representante_grupo' in estudiante ? estudiante.representante_grupo : '') ?? '',
+    asesor: ('asesor' in estudiante ? estudiante.asesor : '') ?? '',
     telefono: estudiante.telefono ?? '',
     email: estudiante.email ?? '',
     direccion: estudiante.direccion ?? '',
@@ -53,6 +68,8 @@ export function EstudianteForm({
     register,
     handleSubmit,
     reset,
+    control,
+    watch,
     formState: { errors, isValid },
   } = useForm<EstudianteFormularioEntrada, unknown, EstudianteFormulario>({
     // Zod transforma '' -> null, así que el tipo de entrada y el de salida
@@ -88,7 +105,7 @@ export function EstudianteForm({
         <Input
           etiqueta="Número de documento"
           requerido
-          inputMode="numeric"
+          soloNumeros
           autoComplete="off"
           placeholder="1012345678"
           disabled={soloLectura}
@@ -128,14 +145,19 @@ export function EstudianteForm({
           error={errors.segundo_apellido?.message}
           {...register('segundo_apellido')}
         />
-        <Input
-          etiqueta="Fecha de nacimiento"
-          type="date"
-          requerido
-          max={new Date().toISOString().slice(0, 10)}
-          disabled={soloLectura}
-          error={errors.fecha_nacimiento?.message}
-          {...register('fecha_nacimiento')}
+        <Controller
+          control={control}
+          name="fecha_nacimiento"
+          render={({ field, fieldState }) => (
+            <InputFecha
+              etiqueta="Fecha de nacimiento"
+              requerido
+              disabled={soloLectura}
+              valorIso={field.value ?? ''}
+              onCambio={field.onChange}
+              error={fieldState.error?.message}
+            />
+          )}
         />
         <Select
           etiqueta="Género"
@@ -148,20 +170,81 @@ export function EstudianteForm({
       </GrupoCampos>
 
       <GrupoCampos titulo="Información académica" columnas={2}>
-        <Input
-          etiqueta="Institución educativa"
-          autoComplete="off"
-          disabled={soloLectura}
-          error={errors.institucion?.message}
-          {...register('institucion')}
+        <Controller
+          control={control}
+          name="institucion"
+          render={({ field, fieldState }) => (
+            <Combobox
+              etiqueta="Institución educativa"
+              opciones={COLEGIOS_MEDELLIN}
+              placeholder="Escribe o elige de la lista"
+              disabled={soloLectura}
+              valor={field.value ?? ''}
+              onCambio={field.onChange}
+              error={fieldState.error?.message}
+            />
+          )}
         />
-        <Input
+        <Select
           etiqueta="Grado"
-          autoComplete="off"
-          placeholder="11-B"
+          placeholder="Selecciona el grado"
           disabled={soloLectura}
+          opciones={GRADOS.map((g) => ({ valor: g, etiqueta: g }))}
           error={errors.grado?.message}
           {...register('grado')}
+        />
+        <Controller
+          control={control}
+          name="eps"
+          render={({ field, fieldState }) => (
+            <Combobox
+              etiqueta="EPS (entidad de salud)"
+              opciones={EPS}
+              placeholder="Escribe o elige la EPS"
+              disabled={soloLectura}
+              valor={field.value ?? ''}
+              onCambio={field.onChange}
+              error={fieldState.error?.message}
+            />
+          )}
+        />
+
+        {/* El grupo/dependencia solo aplica a 10° y 11°. */}
+        {gradoTieneGrupo(watch('grado') ?? '') && (
+          <Controller
+            control={control}
+            name="grupo"
+            render={({ field, fieldState }) => (
+              <Combobox
+                etiqueta="Grupo / dependencia"
+                opciones={GRUPOS_DEPENDENCIA}
+                placeholder="Décimo 1, A, Mecanografía, Salud…"
+                disabled={soloLectura}
+                valor={field.value ?? ''}
+                onCambio={field.onChange}
+                error={fieldState.error?.message}
+              />
+            )}
+          />
+        )}
+      </GrupoCampos>
+
+      <GrupoCampos titulo="Datos de la venta" columnas={2}>
+        <Input
+          etiqueta="Estudiante representante de grupo"
+          autoComplete="off"
+          placeholder="Nombre del representante"
+          disabled={soloLectura}
+          error={errors.representante_grupo?.message}
+          {...register('representante_grupo')}
+        />
+        <Input
+          etiqueta="Asesor que realizó la venta"
+          autoComplete="off"
+          placeholder="Nombre del asesor"
+          disabled={soloLectura}
+          error={errors.asesor?.message}
+          {...register('asesor')}
         />
       </GrupoCampos>
 
@@ -169,8 +252,9 @@ export function EstudianteForm({
         <Input
           etiqueta="Teléfono"
           type="tel"
-          inputMode="tel"
+          soloNumeros
           autoComplete="off"
+          placeholder="3001234567"
           disabled={soloLectura}
           error={errors.telefono?.message}
           {...register('telefono')}
@@ -191,12 +275,20 @@ export function EstudianteForm({
           error={errors.direccion?.message}
           {...register('direccion')}
         />
-        <Input
-          etiqueta="Ciudad"
-          autoComplete="off"
-          disabled={soloLectura}
-          error={errors.ciudad?.message}
-          {...register('ciudad')}
+        <Controller
+          control={control}
+          name="ciudad"
+          render={({ field, fieldState }) => (
+            <Combobox
+              etiqueta="Ciudad"
+              opciones={CIUDADES}
+              placeholder="Medellín"
+              disabled={soloLectura}
+              valor={field.value ?? ''}
+              onCambio={field.onChange}
+              error={fieldState.error?.message}
+            />
+          )}
         />
       </GrupoCampos>
     </form>

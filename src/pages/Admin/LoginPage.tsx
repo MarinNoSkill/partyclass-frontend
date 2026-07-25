@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/forms/FormField';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,8 +53,8 @@ export function LoginPage() {
     <div className="grid min-h-dvh place-items-center bg-tinta-900 px-4 py-10">
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">
-          <span className="grid size-14 place-items-center rounded-2xl bg-marca-600 text-white">
-            <ShieldCheck className="size-7" aria-hidden />
+          <span className="grid size-20 place-items-center rounded-2xl bg-white/95 p-2 shadow-lg">
+            <img src="/logo.webp" alt="PartyClass" className="h-full w-auto" />
           </span>
           <h1 className="mt-4 text-xl font-semibold text-white">Panel de administración</h1>
           <p className="mt-1 text-sm text-tinta-400">

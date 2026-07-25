@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { ArrowLeft, CalendarDays, Check, Inbox, Layers } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -119,27 +120,31 @@ export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
-              {planes.data.map((plan) => {
+              {planes.data.map((plan, indice) => {
                 const activo = planId === plan.id;
 
                 return (
-                  <button
+                  <motion.button
                     key={plan.id}
                     type="button"
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, delay: indice * 0.05, ease: 'easeOut' }}
+                    whileHover={{ y: -3 }}
                     onClick={() => setPlanId(plan.id)}
                     className={cn(
-                      'overflow-hidden rounded-xl border-2 text-left transition-all',
+                      'overflow-hidden rounded-xl border-2 text-left transition-colors',
                       activo
-                        ? 'border-marca-600 shadow-md'
-                        : 'border-tinta-200 hover:border-tinta-300',
+                        ? 'border-marca-600 shadow-lg shadow-marca-600/10'
+                        : 'border-tinta-200 hover:border-marca-300',
                     )}
                   >
-                    <span className="relative block aspect-[4/3] bg-tinta-100">
-                      {plan.imagenUrl && (
+                    <span className="relative block aspect-4/3 overflow-hidden bg-tinta-100">
+                      {(plan.presentacionUrl ?? plan.imagenUrl) && (
                         <img
-                          src={plan.imagenUrl}
-                          alt={`Convenio de ${plan.nombre}`}
-                          className="h-full w-full object-cover"
+                          src={plan.presentacionUrl ?? plan.imagenUrl ?? ''}
+                          alt={`Plan ${plan.nombre}`}
+                          className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                         />
                       )}
                       {activo && (
@@ -160,12 +165,56 @@ export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
                         </span>
                       )}
                     </span>
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
           )}
         </Card>
+      )}
+
+      {/* --- Detalle del plan elegido: presentación grande + convenio pequeño al lado --- */}
+      {planSeleccionado && (planSeleccionado.presentacionUrl || planSeleccionado.imagenUrl) && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+        >
+          <Card>
+            <CardHeader
+              titulo={planSeleccionado.nombre}
+              descripcion="Así se ve tu plan. Al lado, una vista del convenio que vas a firmar."
+              icono={<Layers className="size-5" aria-hidden />}
+              className="mb-4"
+            />
+            <div className="flex flex-col gap-4 sm:flex-row">
+              {/* Imagen de presentación: grande */}
+              <div className="min-w-0 flex-1 overflow-hidden rounded-xl border border-tinta-200 bg-tinta-50">
+                <img
+                  src={planSeleccionado.presentacionUrl ?? planSeleccionado.imagenUrl ?? ''}
+                  alt={`Plan ${planSeleccionado.nombre}`}
+                  className="h-full max-h-104 w-full object-contain"
+                />
+              </div>
+
+              {/* Convenio: pequeño, al lado */}
+              {planSeleccionado.imagenUrl && (
+                <div className="shrink-0 sm:w-40">
+                  <span className="mb-1.5 block text-xs font-medium text-tinta-500">
+                    Convenio
+                  </span>
+                  <div className="overflow-hidden rounded-lg border border-tinta-200 bg-white">
+                    <img
+                      src={planSeleccionado.imagenUrl}
+                      alt={`Convenio de ${planSeleccionado.nombre}`}
+                      className="h-auto w-full object-contain"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        </motion.div>
       )}
 
       {error && (

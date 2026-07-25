@@ -165,28 +165,18 @@ export function RegistrosPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-tinta-200 bg-tinta-50 text-xs tracking-wide text-tinta-500 uppercase">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Convenio</th>
                   <th className="px-4 py-3 font-medium">Reserva</th>
                   <th className="px-4 py-3 font-medium">Estudiante</th>
                   <th className="px-4 py-3 font-medium">Estado</th>
                   <th className="px-4 py-3 font-medium">Firmas</th>
                   <th className="px-4 py-3 font-medium">Actualizado</th>
+                  <th className="px-4 py-3 font-medium">Números asignados</th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-tinta-100">
                 {data.items.map((reserva) => (
                   <tr key={reserva.id} className="transition-colors hover:bg-tinta-50/70">
-                    <td className="px-4 py-3">
-                      {reserva.numero_convenio ? (
-                        <span className="inline-flex items-center gap-1 font-mono text-base font-semibold text-marca-700">
-                          <Hash className="size-3.5" aria-hidden />
-                          {reserva.numero_convenio}
-                        </span>
-                      ) : (
-                        <span className="text-tinta-400">—</span>
-                      )}
-                    </td>
                     <td className="px-4 py-3 font-medium text-tinta-900">
                       {reserva.codigo}
                     </td>
@@ -202,6 +192,16 @@ export function RegistrosPage() {
                     <td className="px-4 py-3 text-tinta-600">{reserva.total_firmas}</td>
                     <td className="px-4 py-3 text-tinta-600">
                       {formatearFechaHora(reserva.updated_at)}
+                    </td>
+                    <td className="px-4 py-3">
+                      {reserva.numero_convenio ? (
+                        <span className="inline-flex items-center gap-1 font-mono text-base font-semibold text-marca-700">
+                          <Hash className="size-3.5" aria-hidden />
+                          {reserva.numero_convenio}
+                        </span>
+                      ) : (
+                        <span className="text-tinta-400">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">

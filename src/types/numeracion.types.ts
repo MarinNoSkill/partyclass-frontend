@@ -58,3 +58,29 @@ export interface Plan {
   created_at: string;
   updated_at: string;
 }
+
+/** Un número asignado en el sistema, con su estado frente al Excel y su reserva. */
+export interface NumeroDetalleConciliacion {
+  numero_formateado: string;
+  orden: number | null;
+  abonado: boolean;
+  reserva_id: string | null;
+  reserva_codigo: string | null;
+  estudiante_nombre: string | null;
+  estudiante_documento: string | null;
+  plan_nombre: string | null;
+}
+
+/**
+ * Resultado de comparar el Excel de abonados contra los números asignados.
+ * Cubre las tres situaciones: abonado, sin abonar y solo en el Excel.
+ */
+export interface ConciliacionResultado {
+  totalEnExcel: number;
+  totalAsignados: number;
+  totalConciliados: number;
+  totalSinAbonar: number;
+  totalSoloExcel: number;
+  numeros: NumeroDetalleConciliacion[];
+  soloEnExcel: string[];
+}

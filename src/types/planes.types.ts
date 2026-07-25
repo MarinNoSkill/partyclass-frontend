@@ -31,6 +31,14 @@ export interface Plan {
   boleta_ancho_px: number | null;
   boleta_alto_px: number | null;
 
+  /** Imagen comercial que ve el estudiante al elegir el plan. Opcional. */
+  presentacion_ruta: string | null;
+  presentacion_nombre: string | null;
+  presentacion_mime: string | null;
+  presentacion_bytes: number | null;
+  presentacion_ancho_px: number | null;
+  presentacion_alto_px: number | null;
+
   created_at: string;
   updated_at: string;
 }
@@ -41,6 +49,7 @@ export interface PlanConImagen extends Plan {
   /** Enlaces temporales a las imágenes. Caducan a los 5 minutos. */
   imagenUrl: string | null;
   boletaUrl: string | null;
+  presentacionUrl: string | null;
   /** `false` cuando ya hay convenios emitidos bajo este plan. */
   eliminable: boolean;
 }

@@ -56,9 +56,11 @@ export const Button = forwardRef<HTMLButtonElement, PropsBoton>(function Button(
       disabled={inhabilitado}
       aria-busy={cargando || undefined}
       className={cn(
-        'inline-flex items-center justify-center font-medium transition-colors duration-150',
+        'inline-flex items-center justify-center font-medium transition-all duration-150',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marca-600',
         'disabled:cursor-not-allowed select-none',
+        // Micro-interacción: se hunde ligeramente al pulsar (salvo deshabilitado).
+        !inhabilitado && 'active:scale-[0.97]',
         VARIANTES[variante],
         TAMANOS[tamano],
         anchoCompleto && 'w-full',

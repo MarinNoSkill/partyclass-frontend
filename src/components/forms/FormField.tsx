@@ -1,4 +1,4 @@
-import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
+import { forwardRef, useId, type ChangeEventHandler, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
@@ -68,14 +68,40 @@ export interface PropsInput extends InputHTMLAttributes<HTMLInputElement> {
   ayuda?: string;
   requerido?: boolean;
   contenedorClassName?: string;
+  /** Bloquea todo lo que no sea dígito (teléfonos, cédulas numéricas). */
+  soloNumeros?: boolean;
+  /** Opciones de autocompletado (datalist). El usuario puede escribir libre. */
+  sugerencias?: readonly string[];
 }
 
 export const Input = forwardRef<HTMLInputElement, PropsInput>(function Input(
-  { etiqueta, error, ayuda, requerido, contenedorClassName, className, id, ...resto },
+  {
+    etiqueta,
+    error,
+    ayuda,
+    requerido,
+    contenedorClassName,
+    soloNumeros,
+    sugerencias,
+    className,
+    id,
+    onChange,
+    ...resto
+  },
   ref,
 ) {
   const idGenerado = useId();
   const idCampo = id ?? idGenerado;
+  const idLista = sugerencias ? `${idCampo}-lista` : undefined;
+
+  // Filtra los no-dígitos ANTES de pasar el evento a react-hook-form, que lee
+  // `e.target.value`. Así el campo nunca llega a mostrar letras.
+  const manejarCambio: ChangeEventHandler<HTMLInputElement> = (evento) => {
+    if (soloNumeros) {
+      evento.target.value = evento.target.value.replace(/\D/g, '');
+    }
+    onChange?.(evento);
+  };
 
   return (
     <Campo
@@ -87,8 +113,12 @@ export const Input = forwardRef<HTMLInputElement, PropsInput>(function Input(
       className={contenedorClassName}
     >
       <input
+        {...resto}
         ref={ref}
         id={idCampo}
+        list={idLista}
+        inputMode={soloNumeros ? 'numeric' : resto.inputMode}
+        onChange={manejarCambio}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${idCampo}-error` : ayuda ? `${idCampo}-ayuda` : undefined}
         className={cn(
@@ -96,8 +126,14 @@ export const Input = forwardRef<HTMLInputElement, PropsInput>(function Input(
           error ? CLASES_BORDE_ERROR : CLASES_BORDE_NORMAL,
           className,
         )}
-        {...resto}
       />
+      {sugerencias && (
+        <datalist id={idLista}>
+          {sugerencias.map((opcion) => (
+            <option key={opcion} value={opcion} />
+          ))}
+        </datalist>
+      )}
     </Campo>
   );
 });

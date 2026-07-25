@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
-import { useForm, type Resolver } from 'react-hook-form';
+import { Controller, useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { GrupoCampos, Input, Select } from './FormField';
+import { Combobox } from './Combobox';
+import { CIUDADES, PROFESIONES } from '@/data/catalogos';
 import {
   ACUDIENTE_VACIO,
   esquemaAcudiente,
@@ -51,6 +53,7 @@ export function AcudienteForm({
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<AcudienteFormularioEntrada, unknown, AcudienteFormulario>({
     // Ver nota en EstudianteForm: entrada ('') y salida (null) difieren.
@@ -81,7 +84,7 @@ export function AcudienteForm({
         <Input
           etiqueta="Número de documento"
           requerido
-          inputMode="numeric"
+          soloNumeros
           autoComplete="off"
           disabled={soloLectura}
           error={errors.numero_documento?.message}
@@ -120,9 +123,10 @@ export function AcudienteForm({
         <Input
           etiqueta="Teléfono"
           type="tel"
-          inputMode="tel"
+          soloNumeros
           requerido
           autoComplete="off"
+          placeholder="3001234567"
           disabled={soloLectura}
           error={errors.telefono?.message}
           {...register('telefono')}
@@ -137,19 +141,35 @@ export function AcudienteForm({
           error={errors.email?.message}
           {...register('email')}
         />
-        <Input
-          etiqueta="Ocupación"
-          autoComplete="off"
-          disabled={soloLectura}
-          error={errors.ocupacion?.message}
-          {...register('ocupacion')}
+        <Controller
+          control={control}
+          name="ocupacion"
+          render={({ field, fieldState }) => (
+            <Combobox
+              etiqueta="Ocupación"
+              opciones={PROFESIONES}
+              placeholder="Escribe o elige de la lista"
+              disabled={soloLectura}
+              valor={field.value ?? ''}
+              onCambio={field.onChange}
+              error={fieldState.error?.message}
+            />
+          )}
         />
-        <Input
-          etiqueta="Ciudad"
-          autoComplete="off"
-          disabled={soloLectura}
-          error={errors.ciudad?.message}
-          {...register('ciudad')}
+        <Controller
+          control={control}
+          name="ciudad"
+          render={({ field, fieldState }) => (
+            <Combobox
+              etiqueta="Ciudad"
+              opciones={CIUDADES}
+              placeholder="Medellín"
+              disabled={soloLectura}
+              valor={field.value ?? ''}
+              onCambio={field.onChange}
+              error={fieldState.error?.message}
+            />
+          )}
         />
         <Input
           etiqueta="Dirección"

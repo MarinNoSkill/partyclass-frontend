@@ -1,5 +1,11 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { numeracionService } from '@/services/numeracion.service';
+import { registroService } from '@/services/registro.service';
 import { auditoriaService } from '@/services/auth.service';
 import type { FiltrosNumeracion } from '@/types/numeracion.types';
 
@@ -32,6 +38,28 @@ export function usePlanes() {
     queryKey: clavesNumeracion.planes(),
     queryFn: () => numeracionService.planes(),
     staleTime: 10 * 60_000,
+  });
+}
+
+/** Sube el Excel de abonados y obtiene los números asignados que faltan en él. */
+export function useConciliarAbonos() {
+  return useMutation({
+    mutationFn: (archivo: File) => numeracionService.conciliar(archivo),
+  });
+}
+
+/**
+ * Desasigna un número borrando su reserva completa (y liberando todos sus
+ * números). Invalida numeración y registros para que las vistas se refresquen.
+ */
+export function useDesasignarReserva() {
+  const cliente = useQueryClient();
+  return useMutation({
+    mutationFn: (reservaId: string) => registroService.eliminar(reservaId),
+    onSuccess: () => {
+      void cliente.invalidateQueries({ queryKey: clavesNumeracion.raiz });
+      void cliente.invalidateQueries({ queryKey: ['registros'] });
+    },
   });
 }
 

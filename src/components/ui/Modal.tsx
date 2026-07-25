@@ -65,10 +65,10 @@ export function Modal({
             role="dialog"
             aria-modal="true"
             aria-label={titulo}
-            initial={{ opacity: 0, y: 24, scale: 0.98 }}
+            initial={{ opacity: 0, y: 28, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.98 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
+            transition={{ type: 'spring', stiffness: 320, damping: 26 }}
             className={cn(
               'relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-[0_10px_40px_-12px_rgb(15_23_42/0.35)] sm:rounded-2xl',
               TAMANOS[tamano],

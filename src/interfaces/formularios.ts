@@ -73,7 +73,15 @@ export const esquemaEstudiante = z.object({
     .optional()
     .transform((valor) => (valor === '' || valor === undefined ? null : valor)),
   grado: textoOpcional(60, 'El grado'),
+  /** Grupo o dependencia (Décimo 1, A, B, Mecanografía, Salud…). Solo para 10° y 11°. */
+  grupo: textoOpcional(80, 'El grupo'),
   institucion: textoOpcional(120, 'La institución'),
+  /** EPS a la que está afiliado el estudiante. */
+  eps: textoOpcional(80, 'La EPS'),
+  /** Estudiante representante de grupo. */
+  representante_grupo: textoOpcional(120, 'El representante'),
+  /** Asesor que realizó la venta. */
+  asesor: textoOpcional(120, 'El asesor'),
   telefono: telefonoOpcional,
   email: emailOpcional,
   direccion: textoOpcional(180, 'La dirección'),
@@ -135,7 +143,11 @@ export const ESTUDIANTE_VACIO: EstudianteFormularioEntrada = {
   fecha_nacimiento: '',
   genero: '',
   grado: '',
+  grupo: '',
   institucion: '',
+  eps: '',
+  representante_grupo: '',
+  asesor: '',
   telefono: '',
   email: '',
   direccion: '',

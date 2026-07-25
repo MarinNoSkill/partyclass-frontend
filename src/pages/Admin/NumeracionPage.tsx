@@ -8,6 +8,7 @@ import { Pagination } from '@/components/ui/Pagination';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Spinner } from '@/components/ui/Spinner';
 import { EstadisticasNumeracionPanel } from './EstadisticasNumeracion';
+import { ConciliacionAbonos } from './ConciliacionAbonos';
 import {
   useEstadisticasNumeracion,
   useNumeracion,
@@ -61,6 +62,8 @@ export function NumeracionPage() {
         datos={estadisticas.data}
         cargando={estadisticas.isPending}
       />
+
+      <ConciliacionAbonos />
 
       <Card sinRelleno>
         <CardHeader

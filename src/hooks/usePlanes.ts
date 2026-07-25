@@ -113,3 +113,20 @@ export function useEliminarBoleta() {
     onSuccess: invalidar,
   });
 }
+
+export function useSubirPresentacion() {
+  const invalidar = useInvalidarPlanes();
+  return useMutation({
+    mutationFn: ({ id, archivo }: { id: string; archivo: File }) =>
+      planesService.subirPresentacion(id, archivo),
+    onSuccess: invalidar,
+  });
+}
+
+export function useEliminarPresentacion() {
+  const invalidar = useInvalidarPlanes();
+  return useMutation({
+    mutationFn: (id: string) => planesService.eliminarPresentacion(id),
+    onSuccess: invalidar,
+  });
+}
