@@ -2,6 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   Hash,
+  Images,
   Layers,
   LayoutDashboard,
   LogOut,
@@ -15,6 +16,7 @@ const SECCIONES = [
   { etiqueta: 'Resumen', ruta: '/admin', icono: LayoutDashboard, exacta: true },
   { etiqueta: 'Registros', ruta: '/admin/registros', icono: Table2 },
   { etiqueta: 'Planes', ruta: '/admin/planes', icono: Layers },
+  { etiqueta: 'Inicio', ruta: '/admin/inicio', icono: Images },
   { etiqueta: 'Numeración', ruta: '/admin/numeracion', icono: Hash },
   { etiqueta: 'Configuración', ruta: '/admin/configuracion', icono: Settings },
 ];
@@ -35,22 +37,24 @@ export function AdminLayout() {
 
   return (
     <div className="min-h-dvh bg-tinta-50">
-      <header className="bg-tinta-900 text-white">
+      <header className="fondo-fiesta text-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
-          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white/95 p-1">
-            <img src="/logo.webp" alt="PartyClass" className="h-full w-auto" />
-          </span>
+          <img
+            src="/logo.webp"
+            alt="PartyClass"
+            className="h-10 w-auto shrink-0 drop-shadow-[0_2px_8px_rgb(0_0_0/0.4)]"
+          />
 
           <div className="mr-auto min-w-0">
-            <p className="text-sm font-semibold">Panel de administración</p>
-            <p className="truncate text-xs text-tinta-400">
-              Sesión: {sesion?.usuario}
+            <p className="font-display text-sm font-bold">Panel de administración</p>
+            <p className="truncate text-xs text-white/60">
+              Sesión: <span className="text-oro-300">{sesion?.usuario}</span>
             </p>
           </div>
 
           <NavLink
             to="/"
-            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-tinta-300 transition-colors hover:bg-tinta-800 hover:text-white"
+            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
           >
             <ArrowLeft className="size-4" aria-hidden />
             <span className="hidden sm:inline">Ir al registro</span>
@@ -59,7 +63,7 @@ export function AdminLayout() {
           <button
             type="button"
             onClick={salir}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-tinta-800 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
           >
             <LogOut className="size-4" aria-hidden />
             <span className="hidden sm:inline">Cerrar sesión</span>
@@ -77,8 +81,8 @@ export function AdminLayout() {
                     cn(
                       'inline-flex items-center gap-2 border-b-2 px-3 py-2.5 text-sm font-medium whitespace-nowrap transition-colors',
                       isActive
-                        ? 'border-marca-400 text-white'
-                        : 'border-transparent text-tinta-400 hover:text-white',
+                        ? 'border-oro-400 text-oro-200'
+                        : 'border-transparent text-white/55 hover:text-white',
                     )
                   }
                 >

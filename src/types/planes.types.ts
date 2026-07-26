@@ -9,6 +9,9 @@ export interface Plan {
   plantilla_contrato: string;
   activo: boolean;
 
+  /** Posición dentro de su año (menor = se muestra primero). */
+  orden: number;
+
   /** Cuántas boletas de sorteo emite el plan. Define cuántos números se asignan. */
   numero_boletas: number;
 
@@ -67,6 +70,7 @@ export interface CrearPlanDto {
   personalizado?: boolean;
   descripcion?: string;
   activo?: boolean;
+  orden?: number;
 }
 
 export type ActualizarPlanDto = Partial<CrearPlanDto>;

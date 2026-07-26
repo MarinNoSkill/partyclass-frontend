@@ -50,15 +50,20 @@ export function LoginPage() {
   };
 
   return (
-    <div className="grid min-h-dvh place-items-center bg-tinta-900 px-4 py-10">
+    <div className="fondo-fiesta grid min-h-dvh place-items-center px-4 py-10">
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">
-          <span className="grid size-20 place-items-center rounded-2xl bg-white/95 p-2 shadow-lg">
-            <img src="/logo.webp" alt="PartyClass" className="h-full w-auto" />
-          </span>
-          <h1 className="mt-4 text-xl font-semibold text-white">Panel de administración</h1>
-          <p className="mt-1 text-sm text-tinta-400">
-            {config.appName} · acceso restringido
+          <img
+            src="/logo.webp"
+            alt="PartyClass"
+            className="h-20 w-auto drop-shadow-[0_4px_16px_rgb(0_0_0/0.45)]"
+          />
+          <h1 className="mt-4 font-display text-xl font-bold text-white">
+            Panel de administración
+          </h1>
+          <p className="mt-1 text-sm text-white/60">
+            <span className="font-semibold text-oro-300">{config.appName}</span> · acceso
+            restringido
           </p>
         </div>
 

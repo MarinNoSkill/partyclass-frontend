@@ -3,6 +3,8 @@ import {
   AlertTriangle,
   CalendarDays,
   Check,
+  ChevronDown,
+  ChevronUp,
   Copy,
   ImageOff,
   ImageUp,
@@ -57,11 +59,37 @@ export function PlanesPage() {
 
   const consulta = usePlanesAdmin(anioFiltro !== undefined ? { anio: anioFiltro } : {});
   const eliminarPlan = useEliminarPlan();
+  const reordenar = useActualizarPlan();
   const toast = useToast();
 
   const anios = [...new Set((consulta.data ?? []).map((plan) => plan.anio))].sort(
     (a, b) => b - a,
   );
+
+  /**
+   * Cambia el orden de un plan dentro de su año. Reasigna posiciones
+   * secuenciales a todo el grupo (robusto aunque varios compartan `orden`).
+   */
+  const moverPlan = async (plan: PlanConImagen, direccion: 'subir' | 'bajar') => {
+    const grupo = (consulta.data ?? []).filter((p) => p.anio === plan.anio);
+    const idx = grupo.findIndex((p) => p.id === plan.id);
+    const destino = direccion === 'subir' ? idx - 1 : idx + 1;
+    if (destino < 0 || destino >= grupo.length) return;
+
+    const nuevo = [...grupo];
+    [nuevo[idx], nuevo[destino]] = [nuevo[destino], nuevo[idx]];
+
+    try {
+      await Promise.all(
+        nuevo
+          .map((p, i) => ({ p, i }))
+          .filter(({ p, i }) => p.orden !== i)
+          .map(({ p, i }) => reordenar.mutateAsync({ id: p.id, datos: { orden: i } })),
+      );
+    } catch (fallo) {
+      toast.error(mensajeDeError(fallo));
+    }
+  };
 
   const abrirCreacion = () => {
     setPlanEditando(null);
@@ -152,15 +180,24 @@ export function PlanesPage() {
           />
         ) : (
           <ul className="divide-y divide-tinta-100">
-            {consulta.data.map((plan) => (
-              <FilaPlan
-                key={plan.id}
-                plan={plan}
-                alEditar={() => abrirEdicion(plan)}
-                alEliminar={() => setPlanAEliminar(plan)}
-                alVerImagen={(url, titulo) => setVistaPrevia({ url, titulo })}
-              />
-            ))}
+            {consulta.data.map((plan) => {
+              const grupo = consulta.data.filter((p) => p.anio === plan.anio);
+              const idx = grupo.findIndex((p) => p.id === plan.id);
+              return (
+                <FilaPlan
+                  key={plan.id}
+                  plan={plan}
+                  esPrimero={idx === 0}
+                  esUltimo={idx === grupo.length - 1}
+                  moviendo={reordenar.isPending}
+                  alSubir={() => void moverPlan(plan, 'subir')}
+                  alBajar={() => void moverPlan(plan, 'bajar')}
+                  alEditar={() => abrirEdicion(plan)}
+                  alEliminar={() => setPlanAEliminar(plan)}
+                  alVerImagen={(url, titulo) => setVistaPrevia({ url, titulo })}
+                />
+              );
+            })}
           </ul>
         )}
       </Card>
@@ -377,12 +414,27 @@ function ControlImagenPlan({
 
 interface PropsFila {
   plan: PlanConImagen;
+  esPrimero: boolean;
+  esUltimo: boolean;
+  moviendo: boolean;
+  alSubir: () => void;
+  alBajar: () => void;
   alEditar: () => void;
   alEliminar: () => void;
   alVerImagen: (url: string, titulo: string) => void;
 }
 
-function FilaPlan({ plan, alEditar, alEliminar, alVerImagen }: PropsFila) {
+function FilaPlan({
+  plan,
+  esPrimero,
+  esUltimo,
+  moviendo,
+  alSubir,
+  alBajar,
+  alEditar,
+  alEliminar,
+  alVerImagen,
+}: PropsFila) {
   const subirConvenio = useSubirPlantilla();
   const quitarConvenio = useEliminarPlantilla();
   const subirBoleta = useSubirBoleta();
@@ -507,7 +559,28 @@ function FilaPlan({ plan, alEditar, alEliminar, alVerImagen }: PropsFila) {
       </div>
 
       {/* Acciones */}
-      <div className="flex shrink-0 gap-2">
+      <div className="flex shrink-0 items-center gap-2">
+        <div className="flex flex-col">
+          <button
+            type="button"
+            disabled={esPrimero || moviendo}
+            onClick={alSubir}
+            aria-label="Subir plan en el orden"
+            className="rounded-md p-0.5 text-tinta-400 transition-colors hover:bg-tinta-100 hover:text-tinta-700 disabled:opacity-30"
+          >
+            <ChevronUp className="size-4" aria-hidden />
+          </button>
+          <button
+            type="button"
+            disabled={esUltimo || moviendo}
+            onClick={alBajar}
+            aria-label="Bajar plan en el orden"
+            className="rounded-md p-0.5 text-tinta-400 transition-colors hover:bg-tinta-100 hover:text-tinta-700 disabled:opacity-30"
+          >
+            <ChevronDown className="size-4" aria-hidden />
+          </button>
+        </div>
+
         <Button
           variante="fantasma"
           tamano="sm"

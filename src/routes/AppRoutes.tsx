@@ -9,6 +9,7 @@ import { RegistrosPage } from '@/pages/Admin/RegistrosPage';
 import { RegistroDetallePage } from '@/pages/Admin/RegistroDetallePage';
 import { NumeracionPage } from '@/pages/Admin/NumeracionPage';
 import { PlanesPage } from '@/pages/Admin/PlanesPage';
+import { InicioImagenesPage } from '@/pages/Admin/InicioImagenesPage';
 import { DashboardPage } from '@/pages/Dashboard/DashboardPage';
 import { ConfiguracionPage } from '@/pages/Configuracion/ConfiguracionPage';
 import { NoEncontrada } from '@/pages/NoEncontrada';
@@ -44,6 +45,7 @@ export function AppRoutes() {
           <Route path="registros" element={<RegistrosPage />} />
           <Route path="registros/:id" element={<RegistroDetallePage />} />
           <Route path="planes" element={<PlanesPage />} />
+          <Route path="inicio" element={<InicioImagenesPage />} />
           <Route path="numeracion" element={<NumeracionPage />} />
           <Route path="configuracion" element={<ConfiguracionPage />} />
           <Route path="*" element={<NoEncontrada />} />

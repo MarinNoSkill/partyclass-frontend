@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, CalendarDays, Check, Inbox, Layers } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, GraduationCap, Inbox, Sparkles } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { EncabezadoSeccion } from '@/components/ui/Decoraciones';
+import { Hero } from '@/components/marketing/Hero';
+import { CarruselImagenes } from '@/components/marketing/CarruselImagenes';
+import { InsigniasConfianza } from '@/components/marketing/InsigniasConfianza';
 import { useAniosDisponibles, usePlanesDelAnio } from '@/hooks/usePlanes';
+import { useLandingPublico } from '@/hooks/useLanding';
 import { mensajeDeError } from '@/hooks/useMensajeError';
 import { cn } from '@/utils/cn';
 import type { PlanConImagen } from '@/types/planes.types';
@@ -25,11 +30,10 @@ function formatearPesos(valor: string): string {
 }
 
 /**
- * Paso previo al wizard: año y plan.
+ * Landing pública y paso previo al wizard: año y experiencia (plan).
  *
  * Va antes de crear la reserva, no dentro del stepper, porque el plan define
- * la plantilla del convenio y no debería poder cambiarse a mitad del proceso
- * con datos ya cargados.
+ * la plantilla del convenio y no debería poder cambiarse a mitad del proceso.
  */
 export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
   const [anio, setAnio] = useState<number | null>(null);
@@ -37,18 +41,25 @@ export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
 
   const anios = useAniosDisponibles();
   const planes = usePlanesDelAnio(anio);
+  const landing = useLandingPublico();
 
   const planSeleccionado = planes.data?.find((plan) => plan.id === planId) ?? null;
+  const imagenesAnio = (valor: number): string[] => landing.data?.anios[valor] ?? [];
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5">
+    <div className="mx-auto max-w-4xl space-y-10">
+      <Hero imagenes={landing.data?.hero ?? []} />
+
       {/* --- Paso A: año --- */}
-      <Card>
-        <CardHeader
-          titulo="Selecciona el año"
-          descripcion="Solo aparecen los años con planes disponibles."
-          icono={<CalendarDays className="size-5" aria-hidden />}
-          className="mb-4"
+      <section className="space-y-6">
+        <EncabezadoSeccion
+          titulo="¿De qué prom eres?"
+          descripcion={
+            <>
+              Selecciona tu año y descubre las experiencias que tenemos{' '}
+              <span className="font-semibold text-marca-700">para ti</span>.
+            </>
+          }
         />
 
         {anios.isPending ? (
@@ -62,45 +73,93 @@ export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
         ) : anios.data.length === 0 ? (
           <EmptyState
             icono={<Inbox className="size-6" aria-hidden />}
-            titulo="No hay planes disponibles"
+            titulo="No hay experiencias disponibles"
             descripcion="El administrador debe crear al menos un plan activo y subir su convenio."
           />
         ) : (
-          <div className="flex flex-wrap gap-3">
-            {anios.data.map((opcion) => (
-              <button
-                key={opcion.anio}
-                type="button"
-                onClick={() => {
-                  setAnio(opcion.anio);
-                  setPlanId(null);
-                }}
-                className={cn(
-                  'rounded-xl border-2 px-6 py-4 text-left transition-all',
-                  anio === opcion.anio
-                    ? 'border-marca-600 bg-marca-50 shadow-sm'
-                    : 'border-tinta-200 hover:border-tinta-300 hover:bg-tinta-50',
-                )}
-              >
-                <span className="block text-2xl font-semibold text-tinta-900">
-                  {opcion.anio}
-                </span>
-                <span className="text-xs text-tinta-500">
-                  {opcion.total_planes} plan{opcion.total_planes === 1 ? '' : 'es'}
-                </span>
-              </button>
-            ))}
+          <div className="grid gap-5 sm:grid-cols-2">
+            {anios.data.map((opcion, indice) => {
+              const activo = anio === opcion.anio;
+              return (
+                <motion.button
+                  key={opcion.anio}
+                  type="button"
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: indice * 0.08, ease: 'easeOut' }}
+                  whileHover={{ y: -4 }}
+                  onClick={() => {
+                    setAnio(opcion.anio);
+                    setPlanId(null);
+                  }}
+                  className={cn(
+                    'group overflow-hidden rounded-3xl border bg-white text-center shadow-tarjeta transition-colors',
+                    activo
+                      ? 'border-oro-400 ring-2 ring-oro-300'
+                      : 'border-tinta-200 hover:border-oro-300',
+                  )}
+                >
+                  {/* Cabecera festiva con la insignia dorada */}
+                  <span className="fondo-fiesta relative flex h-32 items-end justify-center">
+                    {imagenesAnio(opcion.anio).length > 0 ? (
+                      <>
+                        <CarruselImagenes imagenes={imagenesAnio(opcion.anio)} />
+                        <span className="absolute inset-0 bg-linear-to-t from-noche-950/90 via-noche-900/40 to-transparent" />
+                      </>
+                    ) : (
+                      <span className="pointer-events-none absolute inset-0 opacity-60">
+                        <span className="absolute -top-6 left-6 size-24 rounded-full bg-marca-500/30 blur-2xl" />
+                        <span className="absolute -right-4 top-2 size-24 rounded-full bg-oro-400/20 blur-2xl" />
+                      </span>
+                    )}
+                    <span className="relative -mb-7 grid size-16 place-items-center rounded-full border-2 border-oro-400 bg-noche-900 text-oro-300 shadow-[0_6px_18px_-6px_rgb(0_0_0/0.6)]">
+                      <span className="flex flex-col items-center leading-none">
+                        <GraduationCap className="size-5" aria-hidden />
+                        <span className="mt-0.5 text-[11px] font-bold text-white">
+                          {opcion.anio}
+                        </span>
+                      </span>
+                    </span>
+                  </span>
+
+                  <span className="block px-5 pt-9 pb-5">
+                    <span className="texto-oro block font-display text-5xl font-extrabold">
+                      {opcion.anio}
+                    </span>
+                    <span className="mt-1 block text-sm text-tinta-500">
+                      <span className="font-semibold text-marca-700">{opcion.total_planes}</span>{' '}
+                      experiencia{opcion.total_planes === 1 ? '' : 's'} disponible
+                      {opcion.total_planes === 1 ? '' : 's'}
+                    </span>
+
+                    <span
+                      className={cn(
+                        'mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold tracking-wide uppercase transition-colors',
+                        activo
+                          ? 'bg-linear-to-b from-oro-400 to-oro-600 text-noche-900'
+                          : 'bg-linear-to-b from-marca-500 to-marca-700 text-white group-hover:from-marca-500 group-hover:to-marca-600',
+                      )}
+                    >
+                      {activo ? 'Seleccionado' : 'Ver experiencias'}
+                      <ArrowRight className="size-4" aria-hidden />
+                    </span>
+                  </span>
+                </motion.button>
+              );
+            })}
           </div>
         )}
-      </Card>
 
-      {/* --- Paso B: plan --- */}
+        <InsigniasConfianza />
+      </section>
+
+      {/* --- Paso B: experiencia (plan) --- */}
       {anio !== null && (
         <Card>
           <CardHeader
-            titulo={`Planes de ${anio}`}
-            descripcion="Elige el plan. Su convenio es el documento que se rellenará con los datos."
-            icono={<Layers className="size-5" aria-hidden />}
+            titulo={`Experiencias de ${anio}`}
+            descripcion="Elige tu experiencia. Su convenio es el documento que se rellenará con tus datos."
+            icono={<Sparkles className="size-5" aria-hidden />}
             className="mb-4"
           />
 
@@ -115,8 +174,8 @@ export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
           ) : planes.data.length === 0 ? (
             <EmptyState
               icono={<Inbox className="size-6" aria-hidden />}
-              titulo={`Sin planes en ${anio}`}
-              descripcion="No hay planes activos con convenio cargado para ese año."
+              titulo={`Sin experiencias en ${anio}`}
+              descripcion="No hay experiencias activas con convenio cargado para ese año."
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
@@ -133,9 +192,9 @@ export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
                     whileHover={{ y: -3 }}
                     onClick={() => setPlanId(plan.id)}
                     className={cn(
-                      'overflow-hidden rounded-xl border-2 text-left transition-colors',
+                      'overflow-hidden rounded-2xl border-2 text-left transition-colors',
                       activo
-                        ? 'border-marca-600 shadow-lg shadow-marca-600/10'
+                        ? 'border-oro-400 shadow-lg shadow-oro-500/15'
                         : 'border-tinta-200 hover:border-marca-300',
                     )}
                   >
@@ -143,20 +202,22 @@ export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
                       {(plan.presentacionUrl ?? plan.imagenUrl) && (
                         <img
                           src={plan.presentacionUrl ?? plan.imagenUrl ?? ''}
-                          alt={`Plan ${plan.nombre}`}
+                          alt={`Experiencia ${plan.nombre}`}
                           className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                         />
                       )}
                       {activo && (
-                        <span className="absolute top-2 right-2 grid size-7 place-items-center rounded-full bg-marca-600 text-white shadow">
+                        <span className="absolute top-2 right-2 grid size-7 place-items-center rounded-full bg-linear-to-br from-oro-300 to-oro-600 text-noche-900 shadow">
                           <Check className="size-4" aria-hidden />
                         </span>
                       )}
                     </span>
 
                     <span className="block p-4">
-                      <span className="block font-medium text-tinta-900">{plan.nombre}</span>
-                      <span className="mt-0.5 block text-sm font-medium text-marca-700">
+                      <span className="block font-display font-semibold text-tinta-900">
+                        {plan.nombre}
+                      </span>
+                      <span className="texto-oro mt-0.5 block text-lg font-bold">
                         {formatearPesos(plan.valor)}
                       </span>
                       {plan.descripcion && (
@@ -183,8 +244,8 @@ export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
           <Card>
             <CardHeader
               titulo={planSeleccionado.nombre}
-              descripcion="Así se ve tu plan. Al lado, una vista del convenio que vas a firmar."
-              icono={<Layers className="size-5" aria-hidden />}
+              descripcion="Así se ve tu experiencia. Al lado, una vista del convenio que vas a firmar."
+              icono={<Sparkles className="size-5" aria-hidden />}
               className="mb-4"
             />
             <div className="flex flex-col gap-4 sm:flex-row">
@@ -192,7 +253,7 @@ export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
               <div className="min-w-0 flex-1 overflow-hidden rounded-xl border border-tinta-200 bg-tinta-50">
                 <img
                   src={planSeleccionado.presentacionUrl ?? planSeleccionado.imagenUrl ?? ''}
-                  alt={`Plan ${planSeleccionado.nombre}`}
+                  alt={`Experiencia ${planSeleccionado.nombre}`}
                   className="h-full max-h-104 w-full object-contain"
                 />
               </div>
@@ -225,11 +286,13 @@ export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
 
       {/* --- Confirmación --- */}
       {planSeleccionado && (
-        <div className="sticky bottom-4 flex flex-col gap-3 rounded-xl border border-tinta-200 bg-white p-4 shadow-lg sm:flex-row sm:items-center">
+        <div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-2xl border border-oro-200 bg-white/95 p-4 shadow-elevada backdrop-blur sm:flex-row sm:items-center">
           <p className="flex-1 text-sm text-tinta-600">
             Vas a registrar con{' '}
             <strong className="text-tinta-900">{planSeleccionado.nombre}</strong> ·{' '}
-            {formatearPesos(planSeleccionado.valor)}
+            <span className="font-semibold text-oro-700">
+              {formatearPesos(planSeleccionado.valor)}
+            </span>
           </p>
 
           <div className="flex gap-2">

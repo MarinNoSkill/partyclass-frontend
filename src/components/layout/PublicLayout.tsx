@@ -19,17 +19,24 @@ import { config } from '@/utils/config';
  * que sigue devolviendo 401 sin JWT válido aunque alguien descubra la ruta.
  */
 export function PublicLayout() {
+  const anioActual = new Date().getFullYear();
+
   return (
-    <div className="flex min-h-dvh flex-col bg-linear-to-b from-marca-50/60 via-tinta-50 to-tinta-50">
-      <header className="sticky top-0 z-30 border-b border-tinta-200/70 bg-white/80 backdrop-blur-md">
+    <div className="fondo-crema flex min-h-dvh flex-col">
+      <header className="sticky top-0 z-30 border-b border-oro-200/60 bg-white/85 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 py-3 sm:px-6">
           <img src="/logo.webp" alt="PartyClass" className="h-10 w-auto shrink-0 sm:h-11" />
 
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-tinta-900">{config.appName}</p>
-            <p className="truncate text-xs text-tinta-500">Registro de convenios</p>
+            <p className="truncate font-display text-base font-bold text-tinta-900">
+              {config.appName}
+            </p>
+            <p className="truncate text-xs font-medium tracking-wide text-oro-700">
+              Experiencias {anioActual} – {anioActual + 1}
+            </p>
           </div>
         </div>
+        <div className="divisor-oro" aria-hidden />
       </header>
 
       <main className="flex-1 px-4 py-6 sm:px-6 lg:py-8">
@@ -38,9 +45,10 @@ export function PublicLayout() {
         </div>
       </main>
 
-      <footer className="border-t border-tinta-200/70 py-4 text-center">
-        <p className="text-xs text-tinta-400">
-          © {new Date().getFullYear()} PartyClass · Tu viaje de grados y prom VIP
+      <footer className="mt-4 border-t border-oro-200/60 bg-noche-900 py-5 text-center">
+        <p className="text-xs text-white/70">
+          © {anioActual} <span className="font-semibold text-oro-300">PartyClass</span> · Tu
+          viaje de grados y prom VIP
         </p>
       </footer>
 

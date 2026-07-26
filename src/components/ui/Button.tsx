@@ -2,12 +2,20 @@ import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
-export type VarianteBoton = 'primario' | 'secundario' | 'fantasma' | 'peligro' | 'contorno';
+export type VarianteBoton =
+  | 'primario'
+  | 'secundario'
+  | 'fantasma'
+  | 'peligro'
+  | 'contorno'
+  | 'oro';
 export type TamanoBoton = 'sm' | 'md' | 'lg';
 
 const VARIANTES: Record<VarianteBoton, string> = {
   primario:
-    'bg-marca-600 text-white hover:bg-marca-700 active:bg-marca-800 shadow-[--shadow-suave] disabled:bg-marca-300',
+    'bg-linear-to-b from-marca-500 to-marca-700 text-white shadow-[0_6px_18px_-6px_rgb(124_58_237/0.6)] hover:from-marca-500 hover:to-marca-600 active:to-marca-800 disabled:from-marca-300 disabled:to-marca-300 disabled:shadow-none',
+  oro:
+    'bg-linear-to-b from-oro-400 to-oro-600 text-noche-900 shadow-[--shadow-oro] hover:from-oro-300 hover:to-oro-500 active:to-oro-700 disabled:from-oro-200 disabled:to-oro-200 disabled:text-oro-700/60 disabled:shadow-none',
   secundario:
     'bg-tinta-100 text-tinta-800 hover:bg-tinta-200 active:bg-tinta-300 disabled:text-tinta-400',
   contorno:
