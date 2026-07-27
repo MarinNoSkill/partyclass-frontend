@@ -16,6 +16,7 @@ function aParams(filtros: FiltrosNumeracion): Record<string, string | number> {
   };
 
   if (filtros.estado) params.estado = filtros.estado;
+  if (filtros.bloqueado !== undefined) params.bloqueado = String(filtros.bloqueado);
   if (filtros.numero) params.numero = filtros.numero;
   if (filtros.anio !== undefined) params.anio = filtros.anio;
   if (filtros.planId) params.planId = filtros.planId;

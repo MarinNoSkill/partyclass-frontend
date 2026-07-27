@@ -33,6 +33,7 @@ export interface FiltrosNumeracion {
   pagina: number;
   tamano: number;
   estado?: EstadoNumero;
+  bloqueado?: boolean;
   numero?: string;
   anio?: number;
   planId?: string;

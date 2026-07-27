@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Hash, Search, SlidersHorizontal, X } from 'lucide-react';
+import { Hash, LockOpen, Search, SlidersHorizontal, X } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -11,12 +11,17 @@ import { EstadisticasNumeracionPanel } from './EstadisticasNumeracion';
 import { ConciliacionAbonos } from './ConciliacionAbonos';
 import {
   useEstadisticasNumeracion,
+  useFijarBloqueoNumeros,
   useNumeracion,
   usePlanes,
 } from '@/hooks/useNumeracion';
+import { useToast } from '@/contexts/ToastContext';
 import { formatearFechaHora } from '@/utils/formato';
 import { mensajeDeError } from '@/hooks/useMensajeError';
-import type { EstadoNumero, FiltrosNumeracion } from '@/types/numeracion.types';
+import type { FiltrosNumeracion } from '@/types/numeracion.types';
+
+/** Valor del selector de estado que combina estado + bloqueado. */
+type OpcionEstado = '' | 'DISPONIBLE' | 'ASIGNADO' | 'BLOQUEADO';
 
 const FILTROS_INICIALES: FiltrosNumeracion = { pagina: 1, tamano: 20 };
 
@@ -28,6 +33,30 @@ export function NumeracionPage() {
   const consulta = useNumeracion(filtros);
   const estadisticas = useEstadisticasNumeracion();
   const planes = usePlanes();
+  const bloqueo = useFijarBloqueoNumeros();
+  const toast = useToast();
+
+  /** Valor actual del selector de estado (combina estado y bloqueado). */
+  const estadoSeleccionado: OpcionEstado = filtros.bloqueado
+    ? 'BLOQUEADO'
+    : (filtros.estado ?? '');
+
+  /** Traduce la opción elegida a los filtros estado/bloqueado. */
+  const aplicarEstado = (opcion: OpcionEstado) => {
+    if (opcion === 'BLOQUEADO') aplicar({ estado: undefined, bloqueado: true });
+    else if (opcion === 'DISPONIBLE') aplicar({ estado: 'DISPONIBLE', bloqueado: false });
+    else if (opcion === 'ASIGNADO') aplicar({ estado: 'ASIGNADO', bloqueado: undefined });
+    else aplicar({ estado: undefined, bloqueado: undefined });
+  };
+
+  const desbloquear = async (numero: string) => {
+    try {
+      await bloqueo.mutateAsync({ numeros: [numero], bloqueado: false });
+      toast.exito(`Número ${numero} desbloqueado.`, 'Vuelve a estar disponible.');
+    } catch (fallo) {
+      toast.error(mensajeDeError(fallo));
+    }
+  };
 
   /** Cualquier cambio de filtro vuelve a la página 1. */
   const aplicar = (parcial: Partial<FiltrosNumeracion>) => {
@@ -44,6 +73,7 @@ export function NumeracionPage() {
     () =>
       Boolean(
         filtros.estado ??
+          filtros.bloqueado ??
           filtros.numero ??
           filtros.anio ??
           filtros.planId ??
@@ -125,15 +155,14 @@ export function NumeracionPage() {
             <label className="block">
               <span className="mb-1 block text-xs font-medium text-tinta-600">Estado</span>
               <select
-                value={filtros.estado ?? ''}
-                onChange={(evento) =>
-                  aplicar({ estado: (evento.target.value || undefined) as EstadoNumero })
-                }
+                value={estadoSeleccionado}
+                onChange={(evento) => aplicarEstado(evento.target.value as OpcionEstado)}
                 className="w-full rounded-lg border border-tinta-300 bg-white px-3 py-2 text-sm outline-none focus:border-marca-500 focus:ring-2 focus:ring-marca-500/20"
               >
                 <option value="">Todos</option>
                 <option value="DISPONIBLE">Disponibles</option>
                 <option value="ASIGNADO">Asignados</option>
+                <option value="BLOQUEADO">Bloqueados</option>
               </select>
             </label>
 
@@ -263,12 +292,24 @@ export function NumeracionPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex flex-wrap gap-1">
+                        {fila.bloqueado ? (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge tono="alerta">Bloqueado</Badge>
+                            <button
+                              type="button"
+                              disabled={bloqueo.isPending}
+                              onClick={() => void desbloquear(fila.numero_formateado)}
+                              className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium text-marca-600 transition-colors hover:bg-marca-50 disabled:opacity-50"
+                            >
+                              <LockOpen className="size-3.5" aria-hidden />
+                              Desbloquear
+                            </button>
+                          </div>
+                        ) : (
                           <Badge tono={fila.estado === 'ASIGNADO' ? 'marca' : 'exito'}>
                             {fila.estado === 'ASIGNADO' ? 'Asignado' : 'Disponible'}
                           </Badge>
-                          {fila.bloqueado && <Badge tono="alerta">Bloqueado</Badge>}
-                        </div>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         {fila.estudiante_nombre ? (
@@ -318,10 +359,26 @@ export function NumeracionPage() {
                     <span className="font-mono text-lg font-semibold text-tinta-900">
                       {fila.numero_formateado}
                     </span>
-                    <Badge tono={fila.estado === 'ASIGNADO' ? 'marca' : 'exito'}>
-                      {fila.estado === 'ASIGNADO' ? 'Asignado' : 'Disponible'}
-                    </Badge>
+                    {fila.bloqueado ? (
+                      <Badge tono="alerta">Bloqueado</Badge>
+                    ) : (
+                      <Badge tono={fila.estado === 'ASIGNADO' ? 'marca' : 'exito'}>
+                        {fila.estado === 'ASIGNADO' ? 'Asignado' : 'Disponible'}
+                      </Badge>
+                    )}
                   </div>
+
+                  {fila.bloqueado && (
+                    <button
+                      type="button"
+                      disabled={bloqueo.isPending}
+                      onClick={() => void desbloquear(fila.numero_formateado)}
+                      className="mt-2 inline-flex items-center gap-1 rounded-md text-sm font-medium text-marca-600 disabled:opacity-50"
+                    >
+                      <LockOpen className="size-4" aria-hidden />
+                      Desbloquear
+                    </button>
+                  )}
 
                   {fila.estudiante_nombre && (
                     <p className="mt-2 text-sm font-medium text-tinta-900">
