@@ -32,7 +32,9 @@ export function usePlanesDelAnio(anio: number | null) {
     queryKey: clavesPlanes.delAnio(anio ?? 0),
     queryFn: () => catalogoService.planesDelAnio(anio as number),
     enabled: anio !== null,
-    staleTime: 0,
+    // Reutiliza las URLs firmadas (válidas 5 min) durante 4 min: así el
+    // navegador sirve las imágenes de su caché en vez de re-descargarlas.
+    staleTime: 4 * 60_000,
   });
 }
 
@@ -41,7 +43,7 @@ export function usePlanPorToken(token: string | undefined) {
     queryKey: ['catalogo', 'plan-token', token],
     queryFn: () => catalogoService.planPorToken(token as string),
     enabled: Boolean(token),
-    staleTime: 0,
+    staleTime: 4 * 60_000,
     retry: false,
   });
 }

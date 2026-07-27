@@ -10,6 +10,7 @@ import { RegistroDetallePage } from '@/pages/Admin/RegistroDetallePage';
 import { NumeracionPage } from '@/pages/Admin/NumeracionPage';
 import { PlanesPage } from '@/pages/Admin/PlanesPage';
 import { InicioImagenesPage } from '@/pages/Admin/InicioImagenesPage';
+import { DocumentosBloqueadosPage } from '@/pages/Admin/DocumentosBloqueadosPage';
 import { DashboardPage } from '@/pages/Dashboard/DashboardPage';
 import { ConfiguracionPage } from '@/pages/Configuracion/ConfiguracionPage';
 import { NoEncontrada } from '@/pages/NoEncontrada';
@@ -46,6 +47,7 @@ export function AppRoutes() {
           <Route path="registros/:id" element={<RegistroDetallePage />} />
           <Route path="planes" element={<PlanesPage />} />
           <Route path="inicio" element={<InicioImagenesPage />} />
+          <Route path="documentos" element={<DocumentosBloqueadosPage />} />
           <Route path="numeracion" element={<NumeracionPage />} />
           <Route path="configuracion" element={<ConfiguracionPage />} />
           <Route path="*" element={<NoEncontrada />} />

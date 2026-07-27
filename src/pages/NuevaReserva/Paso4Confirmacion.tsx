@@ -20,9 +20,18 @@ interface PropsPaso4 {
   registro: RegistroEnCurso;
   alRetroceder: () => void;
   alRegistrar: (resultado: RegistroCreado) => void;
-  /** El backend rechazó el documento por estar ya registrado. */
-  alDocumentoDuplicado: () => void;
+  /**
+   * El backend rechazó por un dato duplicado (documento o correo). Recibe el
+   * código para que el orquestador muestre el modal correspondiente.
+   */
+  alErrorDeDatos: (codigo: string) => void;
 }
+
+const CODIGOS_DATO_DUPLICADO = [
+  'DOCUMENTO_DUPLICADO',
+  'CORREO_DUPLICADO',
+  'CORREO_REGISTRADO',
+];
 
 const ROLES: RolAcudiente[] = ['PADRE', 'MADRE'];
 
@@ -64,7 +73,7 @@ export function Paso4Confirmacion({
   registro,
   alRetroceder,
   alRegistrar,
-  alDocumentoDuplicado,
+  alErrorDeDatos,
 }: PropsPaso4) {
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -108,9 +117,9 @@ export function Paso4Confirmacion({
       // El padre decide qué mostrar: guarda el resultado y limpia el wizard.
       alRegistrar(resultado);
     } catch (fallo) {
-      // Documento ya registrado: el orquestador muestra su modal propio.
-      if (fallo instanceof ErrorApi && fallo.codigo === 'DOCUMENTO_DUPLICADO') {
-        alDocumentoDuplicado();
+      // Dato duplicado (documento o correo): el orquestador muestra su modal.
+      if (fallo instanceof ErrorApi && CODIGOS_DATO_DUPLICADO.includes(fallo.codigo)) {
+        alErrorDeDatos(fallo.codigo);
       } else {
         setError(mensajeDeError(fallo));
       }

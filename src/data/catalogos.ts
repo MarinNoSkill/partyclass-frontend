@@ -189,8 +189,8 @@ export const EPS = [
   'Otra EPS',
 ] as const;
 
-/** Grados de bachillerato. El 10 y el 11 abren el campo de grupo/dependencia. */
-export const GRADOS = ['6°', '7°', '8°', '9°', '10°', '11°'] as const;
+/** Grados seleccionables en el registro. El 10 y el 11 abren el campo de grupo. */
+export const GRADOS = ['9°', '10°', '11°'] as const;
 
 /** Un grado es "de decimo/once" (habilita grupo) si es 10° u 11°. */
 export function gradoTieneGrupo(grado: string): boolean {

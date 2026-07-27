@@ -9,6 +9,8 @@ interface Props {
   className?: string;
   imgClassName?: string;
   alt?: string;
+  /** true para imágenes visibles de entrada (hero): las carga sin diferir. */
+  prioridad?: boolean;
 }
 
 /**
@@ -21,6 +23,7 @@ export function CarruselImagenes({
   className,
   imgClassName,
   alt = '',
+  prioridad = false,
 }: Props) {
   const [indice, setIndice] = useState(0);
 
@@ -44,6 +47,8 @@ export function CarruselImagenes({
           key={actual}
           src={actual}
           alt={alt}
+          loading={prioridad ? 'eager' : 'lazy'}
+          decoding="async"
           initial={{ opacity: 0, scale: 1.04 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}

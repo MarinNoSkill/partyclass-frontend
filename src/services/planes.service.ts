@@ -153,10 +153,20 @@ export const catalogoService = {
     return data.data.valido;
   },
 
-  /** ¿El documento ya tiene un registro? */
-  async documentoRegistrado(numero: string): Promise<boolean> {
+  /** ¿El documento ya tiene un registro, o está bloqueado para ese año? */
+  async documentoRegistrado(numero: string, anio?: number): Promise<boolean> {
     const { data } = await http.get<ApiRespuesta<{ registrado: boolean }>>(
       `/catalogo/documento/${encodeURIComponent(numero)}`,
+      { params: anio !== undefined ? { anio } : undefined },
+    );
+    return data.data.registrado;
+  },
+
+  /** ¿El correo ya está registrado (estudiante o acudiente)? */
+  async correoRegistrado(correo: string): Promise<boolean> {
+    const { data } = await http.post<ApiRespuesta<{ registrado: boolean }>>(
+      '/catalogo/correo',
+      { correo },
     );
     return data.data.registrado;
   },

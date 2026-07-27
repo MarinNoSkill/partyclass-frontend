@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   LogOut,
   Settings,
+  ShieldOff,
   Table2,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,6 +18,7 @@ const SECCIONES = [
   { etiqueta: 'Registros', ruta: '/admin/registros', icono: Table2 },
   { etiqueta: 'Planes', ruta: '/admin/planes', icono: Layers },
   { etiqueta: 'Inicio', ruta: '/admin/inicio', icono: Images },
+  { etiqueta: 'Documentos', ruta: '/admin/documentos', icono: ShieldOff },
   { etiqueta: 'Numeración', ruta: '/admin/numeracion', icono: Hash },
   { etiqueta: 'Configuración', ruta: '/admin/configuracion', icono: Settings },
 ];

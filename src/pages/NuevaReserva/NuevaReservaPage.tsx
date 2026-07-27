@@ -10,6 +10,7 @@ import { Paso4Confirmacion } from './Paso4Confirmacion';
 import { SeleccionPlan } from './SeleccionPlan';
 import { RegistroListo } from './RegistroListo';
 import { ModalDocumentoRegistrado } from '@/components/forms/ModalDocumentoRegistrado';
+import { ModalCorreoEnUso } from '@/components/forms/ModalCorreoEnUso';
 import { useRegistroBorrador } from '@/hooks/useRegistroBorrador';
 import { catalogoService } from '@/services/planes.service';
 import type { EstudianteFormulario } from '@/interfaces/formularios';
@@ -41,6 +42,8 @@ export function NuevaReservaPage({ planInicial }: Props = {}) {
   const [pasoMaximoAlcanzado, setPasoMaximoAlcanzado] = useState(PASO_MINIMO);
   const [resultado, setResultado] = useState<RegistroCreado | null>(null);
   const [documentoDuplicado, setDocumentoDuplicado] = useState(false);
+  const [correoRegistrado, setCorreoRegistrado] = useState(false);
+  const [correoEnUso, setCorreoEnUso] = useState(false);
 
   const {
     registro,
@@ -88,7 +91,7 @@ export function NuevaReservaPage({ planInicial }: Props = {}) {
       // Un documento solo puede registrarse una vez. Se avisa cuanto antes;
       // el backend lo vuelve a verificar al crear (fuente de verdad).
       try {
-        if (await catalogoService.documentoRegistrado(datos.numero_documento)) {
+        if (await catalogoService.documentoRegistrado(datos.numero_documento, registro.plan?.anio)) {
           setDocumentoDuplicado(true);
           return;
         }
@@ -98,8 +101,50 @@ export function NuevaReservaPage({ planInicial }: Props = {}) {
       fijarEstudiante(datos);
       irAPaso(2);
     },
-    [fijarEstudiante, irAPaso],
+    [fijarEstudiante, irAPaso, registro.plan?.anio],
   );
+
+  /**
+   * Al salir del paso de acudientes se validan los correos: no pueden repetirse
+   * entre sí (estudiante y acudientes) ni estar ya registrados en el sistema.
+   */
+  const continuarTrasAcudientes = useCallback(async () => {
+    const correos = [
+      registro.estudiante?.email,
+      registro.acudientes.PADRE?.email,
+      registro.acudientes.MADRE?.email,
+    ]
+      .map((c) => c?.trim().toLowerCase())
+      .filter((c): c is string => Boolean(c));
+
+    // Repetido dentro del mismo registro.
+    if (new Set(correos).size < correos.length) {
+      setCorreoEnUso(true);
+      return;
+    }
+
+    // Ya registrado en la base. Si el chequeo falla (red), no bloquea: el
+    // backend lo verifica al crear.
+    try {
+      for (const correo of new Set(correos)) {
+        if (await catalogoService.correoRegistrado(correo)) {
+          setCorreoRegistrado(true);
+          return;
+        }
+      }
+    } catch {
+      // Silencioso a propósito.
+    }
+
+    avanzar();
+  }, [registro, avanzar]);
+
+  /** Traduce el código de error del backend al modal que corresponde. */
+  const manejarErrorDeDatos = useCallback((codigo: string) => {
+    if (codigo === 'CORREO_REGISTRADO') setCorreoRegistrado(true);
+    else if (codigo === 'CORREO_DUPLICADO') setCorreoEnUso(true);
+    else setDocumentoDuplicado(true);
+  }, []);
 
   /**
    * El resultado se guarda AQUÍ, no dentro del paso 4.
@@ -180,7 +225,7 @@ export function NuevaReservaPage({ planInicial }: Props = {}) {
               acudientes={registro.acudientes}
               alGuardar={fijarAcudiente}
               alQuitar={quitarAcudiente}
-              alContinuar={avanzar}
+              alContinuar={continuarTrasAcudientes}
               alRetroceder={retroceder}
             />
           )}
@@ -208,7 +253,7 @@ export function NuevaReservaPage({ planInicial }: Props = {}) {
                 setResultado(creado);
                 limpiar();
               }}
-              alDocumentoDuplicado={() => setDocumentoDuplicado(true)}
+              alErrorDeDatos={manejarErrorDeDatos}
             />
           )}
         </motion.div>
@@ -218,6 +263,20 @@ export function NuevaReservaPage({ planInicial }: Props = {}) {
         abierto={documentoDuplicado}
         alCerrar={() => setDocumentoDuplicado(false)}
       />
+
+      <ModalDocumentoRegistrado
+        abierto={correoRegistrado}
+        alCerrar={() => setCorreoRegistrado(false)}
+        titulo="Este correo ya está registrado"
+        descripcion={
+          <>
+            Ese correo ya está en uso en otro registro. Cada correo solo puede
+            registrarse una vez.
+          </>
+        }
+      />
+
+      <ModalCorreoEnUso abierto={correoEnUso} alCerrar={() => setCorreoEnUso(false)} />
     </div>
   );
 }

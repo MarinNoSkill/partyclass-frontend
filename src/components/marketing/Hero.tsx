@@ -25,7 +25,7 @@ export function Hero({ imagenes = [], className }: Props) {
     >
       {imagenes.length > 0 && (
         <>
-          <CarruselImagenes imagenes={imagenes} />
+          <CarruselImagenes imagenes={imagenes} prioridad />
           <span className="absolute inset-0 bg-linear-to-t from-noche-950/95 via-noche-900/70 to-noche-800/60" />
         </>
       )}

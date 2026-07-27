@@ -45,6 +45,7 @@ export interface EstadisticasNumeracion {
   total: number;
   disponibles: number;
   asignados: number;
+  bloqueados: number;
   porcentajeUso: number;
   porAnio: Array<{ anio: number; asignados: number }>;
 }

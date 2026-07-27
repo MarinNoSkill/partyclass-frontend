@@ -199,6 +199,8 @@ function PanelSeccion({ titulo, descripcion, seccion, anio, imagenes }: PropsPan
                     <img
                       src={imagen.url}
                       alt={imagen.nombre}
+                      loading="lazy"
+                      decoding="async"
                       className={cn(
                         'h-full w-full object-cover',
                         !imagen.activo && 'opacity-40 grayscale',

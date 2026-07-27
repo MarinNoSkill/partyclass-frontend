@@ -17,8 +17,10 @@ export function useImagenesLanding() {
 export function useLandingPublico() {
   return useQuery({
     queryKey: ['landing-publico'],
+    // Reutiliza las URLs firmadas (válidas 5 min) durante 4 min para que el
+    // navegador sirva las imágenes desde caché en vez de re-descargarlas.
     queryFn: () => landingPublicoService.inicio(),
-    staleTime: 60_000,
+    staleTime: 4 * 60_000,
   });
 }
 

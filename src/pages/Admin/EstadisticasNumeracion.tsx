@@ -1,4 +1,4 @@
-﻿import { BadgeCheck, Hash, TrendingUp } from 'lucide-react';
+﻿import { BadgeCheck, Hash, Lock, TrendingUp } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import type { EstadisticasNumeracion } from '@/types/numeracion.types';
 
@@ -11,8 +11,8 @@ interface Props {
 export function EstadisticasNumeracionPanel({ datos, cargando }: Props) {
   if (cargando || !datos) {
     return (
-      <div className="grid gap-4 sm:grid-cols-3">
-        {[0, 1, 2].map((indice) => (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[0, 1, 2, 3].map((indice) => (
           <Card key={indice}>
             <div className="h-16 animate-pulse rounded-lg bg-tinta-100" />
           </Card>
@@ -37,6 +37,13 @@ export function EstadisticasNumeracionPanel({ datos, cargando }: Props) {
       color: 'text-marca-600 bg-marca-50',
     },
     {
+      etiqueta: 'Números bloqueados',
+      valor: datos.bloqueados.toLocaleString('es-CO'),
+      pie: 'no se asignan',
+      icono: Lock,
+      color: 'text-amber-600 bg-amber-50',
+    },
+    {
       etiqueta: 'Uso del pool',
       valor: `${datos.porcentajeUso}%`,
       pie: datos.porcentajeUso >= 90 ? 'Pool casi agotado' : 'Dentro de lo normal',
@@ -49,7 +56,7 @@ export function EstadisticasNumeracionPanel({ datos, cargando }: Props) {
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {tarjetas.map((tarjeta) => (
         <Card key={tarjeta.etiqueta}>
           <div className="flex items-start gap-3">

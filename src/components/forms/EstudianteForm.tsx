@@ -9,7 +9,6 @@ import {
   COLEGIOS_MEDELLIN,
   EPS,
   GRADOS,
-  GRUPOS_DEPENDENCIA,
   gradoTieneGrupo,
 } from '@/data/catalogos';
 import {
@@ -209,22 +208,15 @@ export function EstudianteForm({
           )}
         />
 
-        {/* El grupo/dependencia solo aplica a 10° y 11°. */}
+        {/* El grupo/dependencia solo aplica a 10° y 11°. Texto libre. */}
         {gradoTieneGrupo(watch('grado') ?? '') && (
-          <Controller
-            control={control}
-            name="grupo"
-            render={({ field, fieldState }) => (
-              <Combobox
-                etiqueta="Grupo / dependencia"
-                opciones={GRUPOS_DEPENDENCIA}
-                placeholder="Décimo 1, A, Mecanografía, Salud…"
-                disabled={soloLectura}
-                valor={field.value ?? ''}
-                onCambio={field.onChange}
-                error={fieldState.error?.message}
-              />
-            )}
+          <Input
+            etiqueta="Grupo / dependencia"
+            autoComplete="off"
+            placeholder="Décimo 1, A, Mecanografía, Salud…"
+            disabled={soloLectura}
+            error={errors.grupo?.message}
+            {...register('grupo')}
           />
         )}
       </GrupoCampos>
