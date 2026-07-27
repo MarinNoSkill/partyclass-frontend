@@ -6,6 +6,7 @@ export interface NumeracionVista {
   numero: number;
   numero_formateado: string;
   estado: EstadoNumero;
+  bloqueado: boolean;
   anio: number | null;
   fecha_asignacion: string | null;
   created_at: string;

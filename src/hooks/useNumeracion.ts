@@ -48,6 +48,18 @@ export function useConciliarAbonos() {
   });
 }
 
+/** Bloquea o desbloquea números (no podrán asignarse). */
+export function useFijarBloqueoNumeros() {
+  const cliente = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: { numeros: string[]; bloqueado: boolean }) =>
+      numeracionService.fijarBloqueo(vars.numeros, vars.bloqueado),
+    onSuccess: () => {
+      void cliente.invalidateQueries({ queryKey: clavesNumeracion.raiz });
+    },
+  });
+}
+
 /**
  * Desasigna un número borrando su reserva completa (y liberando todos sus
  * números). Invalida numeración y registros para que las vistas se refresquen.

@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/Badge';
 import { StepperNav } from '@/components/stepper/StepperNav';
 import { useToast } from '@/contexts/ToastContext';
 import { mensajeDeError } from '@/hooks/useMensajeError';
+import { ErrorApi } from '@/services/http';
 import { registroService } from '@/services/registro.service';
 import type { RegistroCreado } from '@/services/registro.service';
 import { ETIQUETA_ROL, formatearFechaSimple } from '@/utils/formato';
@@ -19,6 +20,8 @@ interface PropsPaso4 {
   registro: RegistroEnCurso;
   alRetroceder: () => void;
   alRegistrar: (resultado: RegistroCreado) => void;
+  /** El backend rechazó el documento por estar ya registrado. */
+  alDocumentoDuplicado: () => void;
 }
 
 const ROLES: RolAcudiente[] = ['PADRE', 'MADRE'];
@@ -57,7 +60,12 @@ function nombreDe(persona: {
  * filas, sube las firmas, asigna el número de sorteo y genera el convenio.
  * Si algo falla, no queda nada a medias.
  */
-export function Paso4Confirmacion({ registro, alRetroceder, alRegistrar }: PropsPaso4) {
+export function Paso4Confirmacion({
+  registro,
+  alRetroceder,
+  alRegistrar,
+  alDocumentoDuplicado,
+}: PropsPaso4) {
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -100,7 +108,12 @@ export function Paso4Confirmacion({ registro, alRetroceder, alRegistrar }: Props
       // El padre decide qué mostrar: guarda el resultado y limpia el wizard.
       alRegistrar(resultado);
     } catch (fallo) {
-      setError(mensajeDeError(fallo));
+      // Documento ya registrado: el orquestador muestra su modal propio.
+      if (fallo instanceof ErrorApi && fallo.codigo === 'DOCUMENTO_DUPLICADO') {
+        alDocumentoDuplicado();
+      } else {
+        setError(mensajeDeError(fallo));
+      }
     } finally {
       setEnviando(false);
     }

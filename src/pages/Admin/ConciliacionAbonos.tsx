@@ -7,6 +7,7 @@ import {
   FileSpreadsheet,
   Hash,
   ListChecks,
+  Lock,
   Trash2,
   Upload,
   X,
@@ -19,7 +20,11 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/contexts/ToastContext';
 import { mensajeDeError } from '@/hooks/useMensajeError';
-import { useConciliarAbonos, useDesasignarReserva } from '@/hooks/useNumeracion';
+import {
+  useConciliarAbonos,
+  useDesasignarReserva,
+  useFijarBloqueoNumeros,
+} from '@/hooks/useNumeracion';
 import { cn } from '@/utils/cn';
 import type {
   ConciliacionResultado,
@@ -110,7 +115,20 @@ export function ConciliacionAbonos() {
 
   const conciliar = useConciliarAbonos();
   const desasignar = useDesasignarReserva();
+  const bloquear = useFijarBloqueoNumeros();
   const toast = useToast();
+
+  const bloquearNumeros = async (numeros: string[]) => {
+    try {
+      const { afectados } = await bloquear.mutateAsync({ numeros, bloqueado: true });
+      toast.exito(
+        `${afectados} número(s) bloqueado(s).`,
+        'No se asignarán en próximos registros.',
+      );
+    } catch (fallo) {
+      toast.error(mensajeDeError(fallo));
+    }
+  };
 
   const numeros = resultado?.numeros ?? [];
   const soloEnExcel = resultado?.soloEnExcel ?? [];
@@ -438,18 +456,34 @@ export function ConciliacionAbonos() {
                   />
                 ) : (
                   <>
-                    <p className="mb-3 text-xs text-tinta-500">
-                      Estos números están en el Excel pero no aparecen asignados en el sistema
-                      (nunca se registraron o su reserva se borró). No hay nada que desasignar.
-                    </p>
+                    <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-xs text-tinta-500">
+                        Están en el Excel pero no asignados en el sistema. Puedes bloquearlos
+                        para que no se asignen a futuros registros.
+                      </p>
+                      <Button
+                        tamano="sm"
+                        variante="oro"
+                        cargando={bloquear.isPending}
+                        onClick={() => void bloquearNumeros(soloExcelFiltrado)}
+                        iconoIzquierda={<Lock className="size-3.5" aria-hidden />}
+                      >
+                        Bloquear {soloExcelFiltrado.length}
+                      </Button>
+                    </div>
                     <div className="flex flex-wrap gap-1.5">
                       {soloExcelFiltrado.map((numero) => (
-                        <span
+                        <button
                           key={numero}
-                          className="rounded-md bg-tinta-100 px-1.5 py-0.5 font-mono text-xs font-semibold text-tinta-600"
+                          type="button"
+                          title="Bloquear este número"
+                          disabled={bloquear.isPending}
+                          onClick={() => void bloquearNumeros([numero])}
+                          className="inline-flex items-center gap-1 rounded-md bg-tinta-100 px-1.5 py-0.5 font-mono text-xs font-semibold text-tinta-600 transition-colors hover:bg-oro-100 hover:text-oro-800 disabled:opacity-50"
                         >
+                          <Lock className="size-3" aria-hidden />
                           {numero}
-                        </span>
+                        </button>
                       ))}
                     </div>
                   </>

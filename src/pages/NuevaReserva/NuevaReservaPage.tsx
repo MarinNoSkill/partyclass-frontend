@@ -9,7 +9,9 @@ import { Paso3Firmas } from './Paso3Firmas';
 import { Paso4Confirmacion } from './Paso4Confirmacion';
 import { SeleccionPlan } from './SeleccionPlan';
 import { RegistroListo } from './RegistroListo';
+import { ModalDocumentoRegistrado } from '@/components/forms/ModalDocumentoRegistrado';
 import { useRegistroBorrador } from '@/hooks/useRegistroBorrador';
+import { catalogoService } from '@/services/planes.service';
 import type { EstudianteFormulario } from '@/interfaces/formularios';
 import type { PlanConImagen } from '@/types/planes.types';
 import type { RegistroCreado } from '@/services/registro.service';
@@ -38,6 +40,7 @@ export function NuevaReservaPage({ planInicial }: Props = {}) {
   const [paso, setPaso] = useState(PASO_MINIMO);
   const [pasoMaximoAlcanzado, setPasoMaximoAlcanzado] = useState(PASO_MINIMO);
   const [resultado, setResultado] = useState<RegistroCreado | null>(null);
+  const [documentoDuplicado, setDocumentoDuplicado] = useState(false);
 
   const {
     registro,
@@ -81,7 +84,17 @@ export function NuevaReservaPage({ planInicial }: Props = {}) {
   }, [limpiarPlan]);
 
   const guardarEstudiante = useCallback(
-    (datos: EstudianteFormulario) => {
+    async (datos: EstudianteFormulario) => {
+      // Un documento solo puede registrarse una vez. Se avisa cuanto antes;
+      // el backend lo vuelve a verificar al crear (fuente de verdad).
+      try {
+        if (await catalogoService.documentoRegistrado(datos.numero_documento)) {
+          setDocumentoDuplicado(true);
+          return;
+        }
+      } catch {
+        // Si el chequeo falla (red), no se bloquea: el backend decidirá al crear.
+      }
       fijarEstudiante(datos);
       irAPaso(2);
     },
@@ -195,10 +208,16 @@ export function NuevaReservaPage({ planInicial }: Props = {}) {
                 setResultado(creado);
                 limpiar();
               }}
+              alDocumentoDuplicado={() => setDocumentoDuplicado(true)}
             />
           )}
         </motion.div>
       </AnimatePresence>
+
+      <ModalDocumentoRegistrado
+        abierto={documentoDuplicado}
+        alCerrar={() => setDocumentoDuplicado(false)}
+      />
     </div>
   );
 }

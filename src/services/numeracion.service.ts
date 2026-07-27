@@ -75,4 +75,13 @@ export const numeracionService = {
     );
     return data.data;
   },
+
+  /** Bloquea o desbloquea números para que no se asignen. */
+  async fijarBloqueo(numeros: string[], bloqueado: boolean): Promise<{ afectados: number }> {
+    const { data } = await http.post<ApiRespuesta<{ afectados: number }>>(
+      '/admin/numeracion/bloqueo',
+      { numeros, bloqueado },
+    );
+    return data.data;
+  },
 };

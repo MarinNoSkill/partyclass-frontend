@@ -55,6 +55,8 @@ export interface PlanConImagen extends Plan {
   presentacionUrl: string | null;
   /** `false` cuando ya hay convenios emitidos bajo este plan. */
   eliminable: boolean;
+  /** Solo por token: true si el plan limita qué documentos pueden diligenciarlo. */
+  restringidoPorDocumento?: boolean;
 }
 
 export interface AnioDisponible {

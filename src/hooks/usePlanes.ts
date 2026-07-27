@@ -114,6 +114,31 @@ export function useEliminarBoleta() {
   });
 }
 
+export function useDocumentosPlan(id: string | null) {
+  return useQuery({
+    queryKey: ['planes', 'documentos', id],
+    queryFn: () => planesService.listarDocumentos(id as string),
+    enabled: Boolean(id),
+    staleTime: 0,
+  });
+}
+
+export function useAgregarDocumentosPlan(id: string) {
+  const cliente = useQueryClient();
+  return useMutation({
+    mutationFn: (documentos: string[]) => planesService.agregarDocumentos(id, documentos),
+    onSuccess: (docs) => cliente.setQueryData(['planes', 'documentos', id], docs),
+  });
+}
+
+export function useEliminarDocumentoPlan(id: string) {
+  const cliente = useQueryClient();
+  return useMutation({
+    mutationFn: (documento: string) => planesService.eliminarDocumento(id, documento),
+    onSuccess: (docs) => cliente.setQueryData(['planes', 'documentos', id], docs),
+  });
+}
+
 export function useSubirPresentacion() {
   const invalidar = useInvalidarPlanes();
   return useMutation({

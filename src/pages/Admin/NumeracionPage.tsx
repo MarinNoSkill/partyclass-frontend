@@ -263,9 +263,12 @@ export function NumeracionPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <Badge tono={fila.estado === 'ASIGNADO' ? 'marca' : 'exito'}>
-                          {fila.estado === 'ASIGNADO' ? 'Asignado' : 'Disponible'}
-                        </Badge>
+                        <div className="flex flex-wrap gap-1">
+                          <Badge tono={fila.estado === 'ASIGNADO' ? 'marca' : 'exito'}>
+                            {fila.estado === 'ASIGNADO' ? 'Asignado' : 'Disponible'}
+                          </Badge>
+                          {fila.bloqueado && <Badge tono="alerta">Bloqueado</Badge>}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         {fila.estudiante_nombre ? (

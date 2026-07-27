@@ -100,6 +100,28 @@ export const planesService = {
     );
     return data.data;
   },
+
+  // --- Documentos autorizados (planes personalizados) ---------------------
+
+  async listarDocumentos(id: string): Promise<string[]> {
+    const { data } = await http.get<ApiRespuesta<string[]>>(`/admin/planes/${id}/documentos`);
+    return data.data;
+  },
+
+  async agregarDocumentos(id: string, documentos: string[]): Promise<string[]> {
+    const { data } = await http.post<ApiRespuesta<string[]>>(
+      `/admin/planes/${id}/documentos`,
+      { documentos },
+    );
+    return data.data;
+  },
+
+  async eliminarDocumento(id: string, documento: string): Promise<string[]> {
+    const { data } = await http.delete<ApiRespuesta<string[]>>(
+      `/admin/planes/${id}/documentos/${encodeURIComponent(documento)}`,
+    );
+    return data.data;
+  },
 };
 
 /** Catálogo del wizard. Solo requiere API key, no sesión de administrador. */
@@ -120,5 +142,30 @@ export const catalogoService = {
   async planPorToken(token: string): Promise<PlanConImagen> {
     const { data } = await http.get<ApiRespuesta<PlanConImagen>>(`/catalogo/plan/${token}`);
     return data.data;
+  },
+
+  /** Valida si un documento puede diligenciar el plan del enlace. */
+  async validarDocumentoToken(token: string, documento: string): Promise<boolean> {
+    const { data } = await http.post<ApiRespuesta<{ valido: boolean }>>(
+      `/catalogo/plan/${token}/validar-documento`,
+      { documento },
+    );
+    return data.data.valido;
+  },
+
+  /** ¿El documento ya tiene un registro? */
+  async documentoRegistrado(numero: string): Promise<boolean> {
+    const { data } = await http.get<ApiRespuesta<{ registrado: boolean }>>(
+      `/catalogo/documento/${encodeURIComponent(numero)}`,
+    );
+    return data.data.registrado;
+  },
+
+  /** Número de contacto de soporte configurado. */
+  async contacto(): Promise<string | null> {
+    const { data } = await http.get<ApiRespuesta<{ contacto: string | null }>>(
+      '/catalogo/contacto',
+    );
+    return data.data.contacto;
   },
 };

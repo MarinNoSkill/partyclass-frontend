@@ -1,8 +1,16 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus, ShieldCheck, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
+import { useToast } from '@/contexts/ToastContext';
 import { mensajeDeError } from '@/hooks/useMensajeError';
-import { useActualizarPlan, useCrearPlan } from '@/hooks/usePlanes';
+import {
+  useActualizarPlan,
+  useAgregarDocumentosPlan,
+  useCrearPlan,
+  useDocumentosPlan,
+  useEliminarDocumentoPlan,
+} from '@/hooks/usePlanes';
 import type { PlanConImagen } from '@/types/planes.types';
 
 interface Props {
@@ -188,6 +196,8 @@ export function PlanForm({ plan, alGuardar, alCancelar }: Props) {
         </span>
       </label>
 
+      {plan && personalizado && <GestorDocumentosPlan planId={plan.id} />}
+
       {error && (
         <p role="alert" className="rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-700">
           {error}
@@ -214,5 +224,101 @@ export function PlanForm({ plan, alGuardar, alCancelar }: Props) {
         </Button>
       </div>
     </form>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+/**
+ * Documentos autorizados de un plan personalizado. Si la lista está vacía,
+ * cualquiera con el enlace puede diligenciarlo; si tiene documentos, solo esos.
+ */
+function GestorDocumentosPlan({ planId }: { planId: string }) {
+  const consulta = useDocumentosPlan(planId);
+  const agregar = useAgregarDocumentosPlan(planId);
+  const eliminar = useEliminarDocumentoPlan(planId);
+  const toast = useToast();
+  const [texto, setTexto] = useState('');
+
+  const documentos = consulta.data ?? [];
+
+  const onAgregar = async () => {
+    // Admite varios pegados separados por coma, espacio o salto de línea.
+    const nuevos = texto
+      .split(/[\s,;]+/)
+      .map((d) => d.trim())
+      .filter(Boolean);
+    if (nuevos.length === 0) return;
+
+    try {
+      await agregar.mutateAsync(nuevos);
+      setTexto('');
+    } catch (fallo) {
+      toast.error(mensajeDeError(fallo));
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-marca-200 bg-marca-50/50 p-3">
+      <div className="flex items-center gap-2">
+        <ShieldCheck className="size-4 text-marca-600" aria-hidden />
+        <span className="text-sm font-medium text-tinta-800">Documentos autorizados</span>
+      </div>
+      <p className="mt-0.5 text-xs text-tinta-500">
+        Solo estos documentos podrán diligenciar el plan por su enlace. Si lo dejas vacío,
+        cualquiera con el enlace podrá hacerlo.
+      </p>
+
+      <div className="mt-3 flex gap-2">
+        <input
+          value={texto}
+          placeholder="Documento(s), separados por coma o espacio"
+          onChange={(evento) => setTexto(evento.target.value)}
+          onKeyDown={(evento) => {
+            if (evento.key === 'Enter') {
+              evento.preventDefault();
+              void onAgregar();
+            }
+          }}
+          className="min-w-0 flex-1 rounded-lg border border-tinta-300 px-3 py-2 text-sm outline-none focus:border-marca-500 focus:ring-2 focus:ring-marca-500/20"
+        />
+        <Button
+          type="button"
+          tamano="sm"
+          cargando={agregar.isPending}
+          onClick={() => void onAgregar()}
+          iconoIzquierda={<Plus className="size-4" aria-hidden />}
+        >
+          Agregar
+        </Button>
+      </div>
+
+      <div className="mt-3">
+        {consulta.isPending ? (
+          <Spinner />
+        ) : documentos.length === 0 ? (
+          <p className="text-xs text-tinta-400">Sin restricción: cualquiera puede diligenciarlo.</p>
+        ) : (
+          <ul className="flex flex-wrap gap-1.5">
+            {documentos.map((doc) => (
+              <li
+                key={doc}
+                className="inline-flex items-center gap-1 rounded-lg border border-tinta-200 bg-white py-1 pr-1 pl-2.5 text-sm text-tinta-700"
+              >
+                <span className="font-mono">{doc}</span>
+                <button
+                  type="button"
+                  onClick={() => void eliminar.mutateAsync(doc).catch(() => undefined)}
+                  aria-label={`Quitar ${doc}`}
+                  className="rounded-md p-0.5 text-tinta-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                >
+                  <X className="size-3.5" aria-hidden />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
   );
 }
