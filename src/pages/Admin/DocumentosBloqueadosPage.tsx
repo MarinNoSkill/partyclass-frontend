@@ -161,6 +161,11 @@ export function DocumentosBloqueadosPage() {
           descripcion="Toca una etiqueta de año para quitar ese bloqueo, o el bote para quitar todo el documento."
           icono={<Plus className="size-5 rotate-45" aria-hidden />}
           className="p-4 sm:p-5"
+          acciones={
+            <Badge tono={(lista.data ?? []).length > 0 ? 'marca' : 'neutro'}>
+              {(lista.data ?? []).length} documento{(lista.data ?? []).length === 1 ? '' : 's'}
+            </Badge>
+          }
         />
 
         <div className="border-t border-tinta-200 p-4">
