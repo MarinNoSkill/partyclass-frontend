@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Ban, Plus, ShieldOff, Trash2, X } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { Ban, FileSpreadsheet, Plus, ShieldOff, Trash2, X } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -10,6 +10,7 @@ import { mensajeDeError } from '@/hooks/useMensajeError';
 import { usePlanesAdmin } from '@/hooks/usePlanes';
 import {
   useBloquearDocumentos,
+  useCargarExcelDocumentos,
   useDesbloquearDocumento,
   useDocumentosBloqueados,
 } from '@/hooks/useDocumentosBloqueados';
@@ -23,8 +24,10 @@ export function DocumentosBloqueadosPage() {
   const lista = useDocumentosBloqueados();
   const planes = usePlanesAdmin();
   const bloquear = useBloquearDocumentos();
+  const cargarExcel = useCargarExcelDocumentos();
   const desbloquear = useDesbloquearDocumento();
   const toast = useToast();
+  const entradaExcel = useRef<HTMLInputElement>(null);
 
   const [texto, setTexto] = useState('');
   const [todos, setTodos] = useState(true);
@@ -71,6 +74,32 @@ export function DocumentosBloqueadosPage() {
       setTexto('');
     } catch (fallo) {
       toast.error(mensajeDeError(fallo));
+    }
+  };
+
+  const detalleAnios = () =>
+    todos ? 'En todos los años.' : `En ${[...aniosSel].sort((a, b) => a - b).join(', ')}.`;
+
+  const seleccionarExcel = async (archivo: File | undefined) => {
+    if (!archivo) return;
+    if (!/\.(xlsx|xls)$/i.test(archivo.name)) {
+      toast.error('El archivo debe ser un Excel (.xlsx o .xls).');
+      return;
+    }
+    if (!todos && aniosSel.size === 0) {
+      toast.error('Elige al menos un año, o marca «Todos los años».');
+      return;
+    }
+    try {
+      const res = await cargarExcel.mutateAsync({
+        archivo,
+        anios: todos ? null : [...aniosSel],
+      });
+      toast.exito(`${res.encontrados} documento(s) del Excel bloqueado(s).`, detalleAnios());
+    } catch (fallo) {
+      toast.error(mensajeDeError(fallo));
+    } finally {
+      if (entradaExcel.current) entradaExcel.current.value = '';
     }
   };
 
@@ -142,7 +171,23 @@ export function DocumentosBloqueadosPage() {
             )}
           </div>
 
-          <div className="flex justify-end">
+          <input
+            ref={entradaExcel}
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={(evento) => void seleccionarExcel(evento.target.files?.[0])}
+          />
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+            <Button
+              variante="secundario"
+              cargando={cargarExcel.isPending}
+              onClick={() => entradaExcel.current?.click()}
+              iconoIzquierda={<FileSpreadsheet className="size-4" aria-hidden />}
+            >
+              Importar Excel
+            </Button>
             <Button
               cargando={bloquear.isPending}
               onClick={() => void onBloquear()}
@@ -151,6 +196,11 @@ export function DocumentosBloqueadosPage() {
               Bloquear
             </Button>
           </div>
+
+          <p className="text-xs text-tinta-400">
+            El Excel se bloquea con la misma selección de años de arriba. Se leen las celdas
+            con números de documento (con al menos un dígito).
+          </p>
         </div>
       </Card>
 
@@ -185,11 +235,14 @@ export function DocumentosBloqueadosPage() {
             />
           ) : (
             <ul className="divide-y divide-tinta-100">
-              {(lista.data ?? []).map((doc) => (
+              {(lista.data ?? []).map((doc, indice) => (
                 <li
                   key={doc.numero_documento}
                   className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center"
                 >
+                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-tinta-100 text-xs font-semibold text-tinta-500 tabular-nums">
+                    {indice + 1}
+                  </span>
                   <span className="min-w-0 flex-1 font-mono text-sm font-semibold text-tinta-900">
                     {doc.numero_documento}
                   </span>

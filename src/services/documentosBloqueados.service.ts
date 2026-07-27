@@ -22,6 +22,23 @@ export const documentosBloqueadosService = {
     return data.data;
   },
 
+  /** Carga documentos desde un Excel y los bloquea en los años dados (null = todos). */
+  async cargarExcel(
+    archivo: File,
+    anios: number[] | null,
+  ): Promise<{ encontrados: number; lista: DocumentoBloqueadoAgrupado[] }> {
+    const formulario = new FormData();
+    formulario.append('archivo', archivo);
+    if (anios && anios.length > 0) formulario.append('anios', anios.join(','));
+
+    const { data } = await http.post<
+      ApiRespuesta<{ encontrados: number; lista: DocumentoBloqueadoAgrupado[] }>
+    >('/admin/documentos-bloqueados/excel', formulario, {
+      headers: { 'Content-Type': undefined },
+    });
+    return data.data;
+  },
+
   /** Quita el bloqueo. Sin `anio` = todos; con año = solo ese; 'todos' = fila «todos los años». */
   async desbloquear(
     documento: string,

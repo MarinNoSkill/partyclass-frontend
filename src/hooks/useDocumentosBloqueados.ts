@@ -20,6 +20,15 @@ export function useBloquearDocumentos() {
   });
 }
 
+export function useCargarExcelDocumentos() {
+  const cliente = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: { archivo: File; anios: number[] | null }) =>
+      documentosBloqueadosService.cargarExcel(vars.archivo, vars.anios),
+    onSuccess: (res) => cliente.setQueryData(CLAVE, res.lista),
+  });
+}
+
 export function useDesbloquearDocumento() {
   const cliente = useQueryClient();
   return useMutation({
