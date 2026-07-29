@@ -268,6 +268,7 @@ export function RepresentantePage() {
             <Paso1Estudiante
               estudiante={estudiante}
               ocultarRepresentanteGrupo
+              documentoFijo={documento.trim()}
               alContinuar={(datos) => {
                 setEstudiante(datos);
                 irA(2);

@@ -29,6 +29,8 @@ interface PropsEstudianteForm {
   alCambiarValidez?: (esValido: boolean) => void;
   /** Oculta el campo "representante de grupo" (en el módulo de representantes sobra). */
   ocultarRepresentanteGrupo?: boolean;
+  /** Fija (prellena y bloquea) el número de documento. Usado en /representante. */
+  documentoFijo?: string;
 }
 
 /** Convierte la entidad del backend en valores de formulario (null -> ''). */
@@ -65,7 +67,14 @@ export function EstudianteForm({
   alEnviar,
   alCambiarValidez,
   ocultarRepresentanteGrupo = false,
+  documentoFijo,
 }: PropsEstudianteForm) {
+  // Si hay documento fijo, se impone sobre cualquier valor inicial.
+  const valoresIniciales = (): EstudianteFormularioEntrada => {
+    const base = aValoresFormulario(valorInicial);
+    return documentoFijo ? { ...base, numero_documento: documentoFijo } : base;
+  };
+
   const {
     register,
     handleSubmit,
@@ -81,13 +90,14 @@ export function EstudianteForm({
       unknown,
       EstudianteFormulario
     >,
-    defaultValues: aValoresFormulario(valorInicial),
+    defaultValues: valoresIniciales(),
     mode: 'onBlur',
   });
 
   useEffect(() => {
-    reset(aValoresFormulario(valorInicial));
-  }, [valorInicial, reset]);
+    reset(valoresIniciales());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [valorInicial, documentoFijo, reset]);
 
   useEffect(() => {
     alCambiarValidez?.(isValid);
@@ -110,7 +120,7 @@ export function EstudianteForm({
           soloNumeros
           autoComplete="off"
           placeholder="1012345678"
-          disabled={soloLectura}
+          disabled={soloLectura || Boolean(documentoFijo)}
           error={errors.numero_documento?.message}
           {...register('numero_documento')}
         />

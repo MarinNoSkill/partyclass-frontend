@@ -100,7 +100,9 @@ export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
           />
         ) : (
           <div className="grid gap-5 sm:grid-cols-2">
-            {anios.data.map((opcion, indice) => {
+            {[...anios.data]
+              .sort((a, b) => a.anio - b.anio)
+              .map((opcion, indice) => {
               const activo = anio === opcion.anio;
               return (
                 <motion.button

@@ -11,6 +11,8 @@ interface PropsPaso1 {
   alRetroceder?: () => void;
   /** Oculta "representante de grupo" (en el módulo de representantes sobra). */
   ocultarRepresentanteGrupo?: boolean;
+  /** Fija (prellena y bloquea) el documento del estudiante. */
+  documentoFijo?: string;
 }
 
 const ID_FORMULARIO = 'formulario-estudiante';
@@ -24,6 +26,7 @@ export function Paso1Estudiante({
   alContinuar,
   alRetroceder,
   ocultarRepresentanteGrupo,
+  documentoFijo,
 }: PropsPaso1) {
   return (
     <Card className="space-y-6">
@@ -39,6 +42,7 @@ export function Paso1Estudiante({
         soloLectura={false}
         alEnviar={alContinuar}
         ocultarRepresentanteGrupo={ocultarRepresentanteGrupo}
+        documentoFijo={documentoFijo}
       />
 
       <StepperNav
