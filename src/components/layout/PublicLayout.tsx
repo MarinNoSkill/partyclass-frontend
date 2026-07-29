@@ -25,13 +25,13 @@ export function PublicLayout() {
     <div className="fondo-crema flex min-h-dvh flex-col">
       <header className="sticky top-0 z-30 border-b border-oro-200/60 bg-white/85 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 py-3 sm:px-6">
-          <img src="/logo.webp" alt="PartyClass" className="h-10 w-auto shrink-0 sm:h-11" />
+          <img src="/logo.webp" alt="PartyClass" className="h-9 w-auto shrink-0 sm:h-11" />
 
           <div className="min-w-0">
-            <p className="truncate font-display text-base font-bold text-tinta-900">
+            <p className="truncate font-display text-sm font-bold text-tinta-900 sm:text-base">
               {config.appName}
             </p>
-            <p className="truncate text-xs font-medium tracking-wide text-oro-700">
+            <p className="truncate text-[11px] font-medium tracking-wide text-oro-700 sm:text-xs">
               Experiencias {anioActual} – {anioActual + 1}
             </p>
           </div>
@@ -39,7 +39,7 @@ export function PublicLayout() {
         <div className="divisor-oro" aria-hidden />
       </header>
 
-      <main className="flex-1 px-4 py-6 sm:px-6 lg:py-8">
+      <main className="flex-1 px-4 py-4 sm:px-6 sm:py-6 lg:py-8">
         <div className="mx-auto w-full max-w-5xl">
           <Outlet />
         </div>

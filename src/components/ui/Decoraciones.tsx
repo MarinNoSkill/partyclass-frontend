@@ -35,12 +35,12 @@ export function EncabezadoSeccion({
 }: PropsEncabezado) {
   return (
     <div className={cn('text-center', className)}>
-      {conDivisor && <DivisorOro className="mb-4" />}
-      <h2 className="font-display text-2xl font-bold tracking-tight text-tinta-900 sm:text-3xl">
+      {conDivisor && <DivisorOro className="mb-2 sm:mb-4" />}
+      <h2 className="font-display text-xl font-bold tracking-tight text-tinta-900 sm:text-3xl">
         {titulo}
       </h2>
       {descripcion && (
-        <p className="mx-auto mt-2 max-w-md text-sm text-tinta-500 sm:text-base">
+        <p className="mx-auto mt-1 max-w-md text-[13px] text-tinta-500 sm:mt-2 sm:text-base">
           {descripcion}
         </p>
       )}
