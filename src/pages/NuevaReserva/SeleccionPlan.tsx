@@ -269,10 +269,10 @@ export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
                     setPlanId(null);
                     setAnio(opcion.anio);
                   }}
-                  className="group overflow-hidden rounded-3xl border border-tinta-200 bg-white text-center shadow-tarjeta transition-colors hover:border-oro-300"
+                  className="group flex flex-col overflow-hidden rounded-3xl border border-tinta-200 bg-white text-center shadow-tarjeta transition-colors hover:border-oro-300"
                 >
                   {/* Cabecera festiva con la insignia dorada */}
-                  <span className="fondo-fiesta relative flex h-20 items-end justify-center sm:h-32">
+                  <span className="fondo-fiesta relative flex h-20 shrink-0 items-end justify-center sm:h-32">
                     {imagenesAnio(opcion.anio).length > 0 ? (
                       <>
                         <CarruselImagenes imagenes={imagenesAnio(opcion.anio)} />
@@ -294,7 +294,7 @@ export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
                     </span>
                   </span>
 
-                  <span className="block px-4 pt-7 pb-3 sm:px-5 sm:pt-9 sm:pb-5">
+                  <span className="flex flex-1 flex-col px-4 pt-7 pb-3 sm:px-5 sm:pt-9 sm:pb-5">
                     <span className="texto-oro block font-display text-3xl font-extrabold sm:text-5xl">
                       {opcion.anio}
                     </span>
@@ -304,7 +304,7 @@ export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
                       {opcion.total_planes === 1 ? '' : 's'}
                     </span>
 
-                    <span className="mt-3 inline-flex w-full items-center justify-center gap-1 rounded-lg bg-linear-to-b from-marca-500 to-marca-700 px-2 py-2 text-[10px] font-semibold tracking-wide text-white uppercase transition-colors group-hover:from-marca-500 group-hover:to-marca-600 sm:mt-4 sm:gap-2 sm:rounded-xl sm:px-4 sm:py-2.5 sm:text-sm">
+                    <span className="mt-auto inline-flex w-full items-center justify-center gap-1 rounded-lg bg-linear-to-b from-marca-500 to-marca-700 px-2 py-2 text-[10px] font-semibold tracking-wide text-white uppercase transition-colors group-hover:from-marca-500 group-hover:to-marca-600 sm:gap-2 sm:rounded-xl sm:px-4 sm:py-2.5 sm:text-sm">
                       Ver experiencias
                       <ArrowRight className="size-3 sm:size-4" aria-hidden />
                     </span>
