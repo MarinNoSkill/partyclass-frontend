@@ -9,6 +9,8 @@ interface PropsPaso1 {
   alContinuar: (datos: EstudianteFormulario) => void;
   /** Ausente en las inscripciones por enlace: el plan es fijo, no hay a dónde volver. */
   alRetroceder?: () => void;
+  /** Oculta "representante de grupo" (en el módulo de representantes sobra). */
+  ocultarRepresentanteGrupo?: boolean;
 }
 
 const ID_FORMULARIO = 'formulario-estudiante';
@@ -17,7 +19,12 @@ const ID_FORMULARIO = 'formulario-estudiante';
  * Paso 1. No escribe en el servidor: entrega los datos ya validados al
  * orquestador, que los mantiene en el navegador hasta el envío final.
  */
-export function Paso1Estudiante({ estudiante, alContinuar, alRetroceder }: PropsPaso1) {
+export function Paso1Estudiante({
+  estudiante,
+  alContinuar,
+  alRetroceder,
+  ocultarRepresentanteGrupo,
+}: PropsPaso1) {
   return (
     <Card className="space-y-6">
       <CardHeader
@@ -31,6 +38,7 @@ export function Paso1Estudiante({ estudiante, alContinuar, alRetroceder }: Props
         valorInicial={estudiante}
         soloLectura={false}
         alEnviar={alContinuar}
+        ocultarRepresentanteGrupo={ocultarRepresentanteGrupo}
       />
 
       <StepperNav

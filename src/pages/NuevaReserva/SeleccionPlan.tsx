@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Check, GraduationCap, Inbox, Sparkles } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -38,10 +38,32 @@ function formatearPesos(valor: string): string {
 export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
   const [anio, setAnio] = useState<number | null>(null);
   const [planId, setPlanId] = useState<string | null>(null);
+  const seccionPlanesRef = useRef<HTMLDivElement>(null);
+  const detalleRef = useRef<HTMLDivElement>(null);
 
   const anios = useAniosDisponibles();
   const planes = usePlanesDelAnio(anio);
   const landing = useLandingPublico();
+
+  // Al elegir un año, baja solo hasta las experiencias: el usuario no tiene
+  // que buscar la sección manualmente.
+  useEffect(() => {
+    if (anio === null) return;
+    // Pequeño margen para que la sección ya esté montada antes de desplazarse.
+    const id = window.setTimeout(() => {
+      seccionPlanesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+    return () => window.clearTimeout(id);
+  }, [anio]);
+
+  // Al elegir una experiencia, baja solo hasta su detalle (presentación + convenio).
+  useEffect(() => {
+    if (planId === null) return;
+    const id = window.setTimeout(() => {
+      detalleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+    return () => window.clearTimeout(id);
+  }, [planId]);
 
   const planSeleccionado = planes.data?.find((plan) => plan.id === planId) ?? null;
   const imagenesAnio = (valor: number): string[] => landing.data?.anios[valor] ?? [];
@@ -155,6 +177,7 @@ export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
 
       {/* --- Paso B: experiencia (plan) --- */}
       {anio !== null && (
+        <div ref={seccionPlanesRef} className="scroll-mt-24">
         <Card>
           <CardHeader
             titulo={`Experiencias de ${anio}`}
@@ -234,11 +257,14 @@ export function SeleccionPlan({ alConfirmar, creando, error }: Props) {
             </div>
           )}
         </Card>
+        </div>
       )}
 
       {/* --- Detalle del plan elegido: presentación grande + convenio pequeño al lado --- */}
       {planSeleccionado && (planSeleccionado.presentacionUrl || planSeleccionado.imagenUrl) && (
         <motion.div
+          ref={detalleRef}
+          className="scroll-mt-24"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}

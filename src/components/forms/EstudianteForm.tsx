@@ -27,6 +27,8 @@ interface PropsEstudianteForm {
   soloLectura?: boolean;
   alEnviar: (datos: EstudianteFormulario) => void;
   alCambiarValidez?: (esValido: boolean) => void;
+  /** Oculta el campo "representante de grupo" (en el módulo de representantes sobra). */
+  ocultarRepresentanteGrupo?: boolean;
 }
 
 /** Convierte la entidad del backend en valores de formulario (null -> ''). */
@@ -62,6 +64,7 @@ export function EstudianteForm({
   soloLectura = false,
   alEnviar,
   alCambiarValidez,
+  ocultarRepresentanteGrupo = false,
 }: PropsEstudianteForm) {
   const {
     register,
@@ -222,14 +225,16 @@ export function EstudianteForm({
       </GrupoCampos>
 
       <GrupoCampos titulo="Datos de la venta" columnas={2}>
-        <Input
-          etiqueta="Estudiante representante de grupo"
-          autoComplete="off"
-          placeholder="Nombre del representante"
-          disabled={soloLectura}
-          error={errors.representante_grupo?.message}
-          {...register('representante_grupo')}
-        />
+        {!ocultarRepresentanteGrupo && (
+          <Input
+            etiqueta="Estudiante representante de grupo"
+            autoComplete="off"
+            placeholder="Nombre del representante"
+            disabled={soloLectura}
+            error={errors.representante_grupo?.message}
+            {...register('representante_grupo')}
+          />
+        )}
         <Input
           etiqueta="Asesor que realizó la venta"
           autoComplete="off"

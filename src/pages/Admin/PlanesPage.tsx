@@ -57,13 +57,19 @@ export function PlanesPage() {
   const [planAEliminar, setPlanAEliminar] = useState<PlanConImagen | null>(null);
   const [vistaPrevia, setVistaPrevia] = useState<{ url: string; titulo: string } | null>(null);
 
-  const consulta = usePlanesAdmin(anioFiltro !== undefined ? { anio: anioFiltro } : {});
+  // Se cargan TODOS los planes y se filtran en cliente: así los botones de año
+  // siempre están disponibles, aunque haya un año seleccionado.
+  const consulta = usePlanesAdmin({});
   const eliminarPlan = useEliminarPlan();
   const reordenar = useActualizarPlan();
   const toast = useToast();
 
   const anios = [...new Set((consulta.data ?? []).map((plan) => plan.anio))].sort(
     (a, b) => b - a,
+  );
+
+  const planesMostrados = (consulta.data ?? []).filter(
+    (plan) => anioFiltro === undefined || plan.anio === anioFiltro,
   );
 
   /**
@@ -127,7 +133,7 @@ export function PlanesPage() {
           }
         />
 
-        {anios.length > 1 && (
+        {anios.length > 0 && (
           <div className="flex flex-wrap gap-2 border-y border-tinta-200 bg-tinta-50/60 p-4">
             <button
               type="button"
@@ -138,7 +144,7 @@ export function PlanesPage() {
                   : 'bg-white text-tinta-600 hover:bg-tinta-100'
               }`}
             >
-              Todos los años
+              General
             </button>
             {anios.map((anio) => (
               <button
@@ -167,7 +173,7 @@ export function PlanesPage() {
               {mensajeDeError(consulta.error)}
             </p>
           </div>
-        ) : consulta.data.length === 0 ? (
+        ) : planesMostrados.length === 0 ? (
           <EmptyState
             icono={<Layers className="size-6" aria-hidden />}
             titulo="Todavía no hay planes"
@@ -180,8 +186,8 @@ export function PlanesPage() {
           />
         ) : (
           <ul className="divide-y divide-tinta-100">
-            {consulta.data.map((plan) => {
-              const grupo = consulta.data.filter((p) => p.anio === plan.anio);
+            {planesMostrados.map((plan) => {
+              const grupo = (consulta.data ?? []).filter((p) => p.anio === plan.anio);
               const idx = grupo.findIndex((p) => p.id === plan.id);
               return (
                 <FilaPlan

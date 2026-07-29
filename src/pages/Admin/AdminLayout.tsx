@@ -9,6 +9,7 @@ import {
   Settings,
   ShieldOff,
   Table2,
+  UserRoundCog,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/utils/cn';
@@ -19,6 +20,7 @@ const SECCIONES = [
   { etiqueta: 'Planes', ruta: '/admin/planes', icono: Layers },
   { etiqueta: 'Inicio', ruta: '/admin/inicio', icono: Images },
   { etiqueta: 'Documentos', ruta: '/admin/documentos', icono: ShieldOff },
+  { etiqueta: 'Representantes', ruta: '/admin/representantes', icono: UserRoundCog },
   { etiqueta: 'Numeración', ruta: '/admin/numeracion', icono: Hash },
   { etiqueta: 'Configuración', ruta: '/admin/configuracion', icono: Settings },
 ];

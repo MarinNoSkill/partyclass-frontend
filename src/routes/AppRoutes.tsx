@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { NuevaReservaPage } from '@/pages/NuevaReserva/NuevaReservaPage';
 import { InscripcionPage } from '@/pages/NuevaReserva/InscripcionPage';
+import { RepresentantePage } from '@/pages/Representante/RepresentantePage';
 import { RutaProtegida } from '@/routes/RutaProtegida';
 import { AdminLayout } from '@/pages/Admin/AdminLayout';
 import { LoginPage } from '@/pages/Admin/LoginPage';
@@ -11,6 +12,7 @@ import { NumeracionPage } from '@/pages/Admin/NumeracionPage';
 import { PlanesPage } from '@/pages/Admin/PlanesPage';
 import { InicioImagenesPage } from '@/pages/Admin/InicioImagenesPage';
 import { DocumentosBloqueadosPage } from '@/pages/Admin/DocumentosBloqueadosPage';
+import { RepresentantesPage } from '@/pages/Admin/RepresentantesPage';
 import { DashboardPage } from '@/pages/Dashboard/DashboardPage';
 import { ConfiguracionPage } from '@/pages/Configuracion/ConfiguracionPage';
 import { NoEncontrada } from '@/pages/NoEncontrada';
@@ -33,6 +35,8 @@ export function AppRoutes() {
         <Route index element={<NuevaReservaPage />} />
         {/* Inscripción por enlace personalizado de un colegio. */}
         <Route path="inscripcion/:token" element={<InscripcionPage />} />
+        {/* Módulo de representantes. */}
+        <Route path="representante" element={<RepresentantePage />} />
         {/* Cualquier ruta pública desconocida vuelve al registro. */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
@@ -48,6 +52,7 @@ export function AppRoutes() {
           <Route path="planes" element={<PlanesPage />} />
           <Route path="inicio" element={<InicioImagenesPage />} />
           <Route path="documentos" element={<DocumentosBloqueadosPage />} />
+          <Route path="representantes" element={<RepresentantesPage />} />
           <Route path="numeracion" element={<NumeracionPage />} />
           <Route path="configuracion" element={<ConfiguracionPage />} />
           <Route path="*" element={<NoEncontrada />} />

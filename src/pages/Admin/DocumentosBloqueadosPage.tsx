@@ -1,5 +1,15 @@
 import { useMemo, useRef, useState } from 'react';
-import { Ban, FileSpreadsheet, Plus, ShieldOff, Trash2, X } from 'lucide-react';
+import {
+  Ban,
+  Check,
+  FileSpreadsheet,
+  Pencil,
+  Plus,
+  Search,
+  ShieldOff,
+  Trash2,
+  X,
+} from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -33,10 +43,48 @@ export function DocumentosBloqueadosPage() {
   const [todos, setTodos] = useState(true);
   const [aniosSel, setAniosSel] = useState<Set<number>>(new Set());
 
+  // Búsqueda/consulta y edición en la lista de bloqueados.
+  const [busqueda, setBusqueda] = useState('');
+  const [editando, setEditando] = useState<string | null>(null);
+  const [editTodos, setEditTodos] = useState(false);
+  const [editAnios, setEditAnios] = useState<Set<number>>(new Set());
+
   const anios = useMemo(
     () => [...new Set((planes.data ?? []).map((p) => p.anio))].sort((a, b) => b - a),
     [planes.data],
   );
+
+  const documentos = lista.data ?? [];
+  const q = busqueda.trim().toLowerCase();
+  const documentosFiltrados = q
+    ? documentos.filter((d) => d.numero_documento.toLowerCase().includes(q))
+    : documentos;
+
+  const abrirEdicion = (numero: string, esTodos: boolean, aniosDoc: number[]) => {
+    setEditando(numero);
+    setEditTodos(esTodos);
+    setEditAnios(new Set(aniosDoc));
+  };
+
+  const guardarEdicion = async () => {
+    if (!editando) return;
+    if (!editTodos && editAnios.size === 0) {
+      toast.error('Elige al menos un año, o «Todos los años».');
+      return;
+    }
+    try {
+      // Reemplaza los bloqueos del documento: se quita y se vuelve a poner.
+      await desbloquear.mutateAsync({ documento: editando });
+      await bloquear.mutateAsync({
+        documentos: [editando],
+        anios: editTodos ? null : [...editAnios],
+      });
+      toast.exito(`Documento ${editando} actualizado.`);
+      setEditando(null);
+    } catch (fallo) {
+      toast.error(mensajeDeError(fallo));
+    }
+  };
 
   const alternarAnio = (anio: number) => {
     setAniosSel((previo) => {
@@ -218,6 +266,27 @@ export function DocumentosBloqueadosPage() {
           }
         />
 
+        {/* Buscar / consultar */}
+        <div className="border-t border-tinta-200 p-4">
+          <div className="relative">
+            <Search className="absolute top-2.5 left-3 size-4 text-tinta-400" aria-hidden />
+            <input
+              value={busqueda}
+              placeholder="Buscar o consultar un documento…"
+              onChange={(evento) => setBusqueda(evento.target.value)}
+              className="w-full rounded-lg border border-tinta-300 py-2 pr-3 pl-9 text-sm outline-none focus:border-marca-500 focus:ring-2 focus:ring-marca-500/20"
+            />
+          </div>
+
+          {q && !lista.isPending && (
+            <p className="mt-2 text-xs text-tinta-500">
+              {documentosFiltrados.length > 0
+                ? `Bloqueado: ${documentosFiltrados.length} coincidencia(s).`
+                : 'Ese documento no está bloqueado.'}
+            </p>
+          )}
+        </div>
+
         <div className="border-t border-tinta-200 p-4">
           {lista.isPending ? (
             <div className="grid place-items-center py-10">
@@ -227,75 +296,159 @@ export function DocumentosBloqueadosPage() {
             <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
               {mensajeDeError(lista.error)}
             </p>
-          ) : (lista.data ?? []).length === 0 ? (
+          ) : documentos.length === 0 ? (
             <EmptyState
               icono={<ShieldOff className="size-6" aria-hidden />}
               titulo="Sin documentos bloqueados"
               descripcion="Los documentos que bloquees aparecerán aquí."
             />
+          ) : documentosFiltrados.length === 0 ? (
+            <EmptyState
+              icono={<Search className="size-6" aria-hidden />}
+              titulo="Sin coincidencias"
+              descripcion="Ningún documento bloqueado coincide con la búsqueda."
+            />
           ) : (
             <ul className="divide-y divide-tinta-100">
-              {(lista.data ?? []).map((doc, indice) => (
-                <li
-                  key={doc.numero_documento}
-                  className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center"
-                >
-                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-tinta-100 text-xs font-semibold text-tinta-500 tabular-nums">
-                    {indice + 1}
-                  </span>
-                  <span className="min-w-0 flex-1 font-mono text-sm font-semibold text-tinta-900">
-                    {doc.numero_documento}
-                  </span>
+              {documentosFiltrados.map((doc, indice) => (
+                <li key={doc.numero_documento} className="py-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-tinta-100 text-xs font-semibold text-tinta-500 tabular-nums">
+                      {indice + 1}
+                    </span>
+                    <span className="min-w-0 flex-1 font-mono text-sm font-semibold text-tinta-900">
+                      {doc.numero_documento}
+                    </span>
 
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {doc.todos ? (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {doc.todos ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void desbloquear
+                              .mutateAsync({ documento: doc.numero_documento, anio: 'todos' })
+                              .catch(() => undefined)
+                          }
+                          className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900 transition-colors hover:bg-amber-200"
+                        >
+                          Todos los años
+                          <X className="size-3" aria-hidden />
+                        </button>
+                      ) : (
+                        doc.anios.map((anio) => (
+                          <button
+                            key={anio}
+                            type="button"
+                            onClick={() =>
+                              void desbloquear
+                                .mutateAsync({ documento: doc.numero_documento, anio })
+                                .catch(() => undefined)
+                            }
+                            className="inline-flex items-center gap-1 rounded-md bg-marca-100 px-2 py-0.5 text-xs font-semibold text-marca-800 transition-colors hover:bg-marca-200"
+                          >
+                            {anio}
+                            <X className="size-3" aria-hidden />
+                          </button>
+                        ))
+                      )}
+
+                      <Badge tono="neutro">
+                        {doc.todos ? 'todos' : `${doc.anios.length} año(s)`}
+                      </Badge>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          editando === doc.numero_documento
+                            ? setEditando(null)
+                            : abrirEdicion(doc.numero_documento, doc.todos, doc.anios)
+                        }
+                        aria-label={`Editar ${doc.numero_documento}`}
+                        className="rounded-md p-1.5 text-tinta-400 transition-colors hover:bg-marca-50 hover:text-marca-600"
+                      >
+                        <Pencil className="size-4" aria-hidden />
+                      </button>
+
                       <button
                         type="button"
                         onClick={() =>
                           void desbloquear
-                            .mutateAsync({ documento: doc.numero_documento, anio: 'todos' })
+                            .mutateAsync({ documento: doc.numero_documento })
                             .catch(() => undefined)
                         }
-                        className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900 transition-colors hover:bg-amber-200"
+                        aria-label={`Quitar ${doc.numero_documento}`}
+                        className="rounded-md p-1.5 text-tinta-400 transition-colors hover:bg-red-50 hover:text-red-600"
                       >
-                        Todos los años
-                        <X className="size-3" aria-hidden />
+                        <Trash2 className="size-4" aria-hidden />
                       </button>
-                    ) : (
-                      doc.anios.map((anio) => (
-                        <button
-                          key={anio}
-                          type="button"
-                          onClick={() =>
-                            void desbloquear
-                              .mutateAsync({ documento: doc.numero_documento, anio })
-                              .catch(() => undefined)
-                          }
-                          className="inline-flex items-center gap-1 rounded-md bg-marca-100 px-2 py-0.5 text-xs font-semibold text-marca-800 transition-colors hover:bg-marca-200"
-                        >
-                          {anio}
-                          <X className="size-3" aria-hidden />
-                        </button>
-                      ))
-                    )}
-
-                    <Badge tono="neutro">
-                      {doc.todos ? 'todos' : `${doc.anios.length} año(s)`}
-                    </Badge>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        void desbloquear
-                          .mutateAsync({ documento: doc.numero_documento })
-                          .catch(() => undefined)
-                      }
-                      aria-label={`Quitar ${doc.numero_documento}`}
-                      className="rounded-md p-1.5 text-tinta-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                    >
-                      <Trash2 className="size-4" aria-hidden />
-                    </button>
+                    </div>
                   </div>
+
+                  {/* Editor de años en línea */}
+                  {editando === doc.numero_documento && (
+                    <div className="mt-3 rounded-xl border border-marca-200 bg-marca-50/50 p-3">
+                      <span className="mb-1.5 block text-xs font-medium text-tinta-600">
+                        Cambiar años de bloqueo
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setEditTodos(true)}
+                          className={cn(
+                            'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                            editTodos
+                              ? 'bg-marca-600 text-white'
+                              : 'bg-white text-tinta-600 hover:bg-tinta-100',
+                          )}
+                        >
+                          Todos los años
+                        </button>
+                        {anios.map((anio) => {
+                          const activo = !editTodos && editAnios.has(anio);
+                          return (
+                            <button
+                              key={anio}
+                              type="button"
+                              onClick={() => {
+                                setEditTodos(false);
+                                setEditAnios((previo) => {
+                                  const copia = new Set(previo);
+                                  if (copia.has(anio)) copia.delete(anio);
+                                  else copia.add(anio);
+                                  return copia;
+                                });
+                              }}
+                              className={cn(
+                                'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                                activo
+                                  ? 'bg-marca-600 text-white'
+                                  : 'bg-white text-tinta-600 hover:bg-tinta-100',
+                              )}
+                            >
+                              {anio}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="mt-3 flex justify-end gap-2">
+                        <Button
+                          variante="secundario"
+                          tamano="sm"
+                          onClick={() => setEditando(null)}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          tamano="sm"
+                          cargando={bloquear.isPending || desbloquear.isPending}
+                          onClick={() => void guardarEdicion()}
+                          iconoIzquierda={<Check className="size-4" aria-hidden />}
+                        >
+                          Guardar
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
