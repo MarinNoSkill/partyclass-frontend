@@ -53,4 +53,6 @@ export interface FiltrosReservas {
   hasta?: string;
   orden?: 'created_at' | 'updated_at' | 'codigo';
   direccion?: 'asc' | 'desc';
+  /** 'true' = solo representantes; ausente = excluye representantes. */
+  esRepresentante?: 'true';
 }

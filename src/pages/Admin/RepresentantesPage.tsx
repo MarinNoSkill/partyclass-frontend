@@ -1,12 +1,24 @@
 import { useRef, useState } from 'react';
-import { FileSignature, ImageUp, Plus, ShieldCheck, Trash2, UserRoundCog } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import {
+  Eye,
+  FileSignature,
+  ImageUp,
+  Plus,
+  ShieldCheck,
+  Table2,
+  Trash2,
+  UserRoundCog,
+} from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
+import { Badge, BadgeEstado } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/contexts/ToastContext';
 import { mensajeDeError } from '@/hooks/useMensajeError';
+import { useListaReservas } from '@/hooks/useReservas';
+import { formatearFechaHora } from '@/utils/formato';
 import {
   useAgregarAutorizados,
   useAutorizadosRepresentante,
@@ -29,6 +41,8 @@ export function RepresentantesPage() {
   const eliminar = useEliminarAutorizado();
   const subirConvenio = useSubirConvenioRepresentante();
   const toast = useToast();
+
+  const registros = useListaReservas({ esRepresentante: 'true', tamano: 100 });
 
   const entradaImg = useRef<HTMLInputElement>(null);
   const [texto, setTexto] = useState('');
@@ -191,6 +205,76 @@ export function RepresentantesPage() {
                 </li>
               ))}
             </ul>
+          )}
+        </div>
+      </Card>
+
+      {/* Representantes registrados */}
+      <Card sinRelleno>
+        <CardHeader
+          titulo="Representantes registrados"
+          descripcion="Registros hechos desde el enlace /representante. No aparecen en Registros."
+          icono={<Table2 className="size-5" aria-hidden />}
+          acciones={
+            <Badge tono="marca">{registros.data?.items.length ?? 0}</Badge>
+          }
+        />
+
+        <div className="border-t border-tinta-200">
+          {registros.isPending ? (
+            <div className="grid place-items-center py-10">
+              <Spinner />
+            </div>
+          ) : registros.isError ? (
+            <p className="m-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+              {mensajeDeError(registros.error)}
+            </p>
+          ) : (registros.data?.items.length ?? 0) === 0 ? (
+            <EmptyState
+              icono={<UserRoundCog className="size-6" aria-hidden />}
+              titulo="Sin representantes registrados"
+              descripcion="Cuando un representante diligencie el formulario, aparecerá aquí."
+            />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-tinta-200 bg-tinta-50 text-xs tracking-wide text-tinta-500 uppercase">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Código</th>
+                    <th className="px-4 py-3 font-medium">Representante</th>
+                    <th className="px-4 py-3 font-medium">Estado</th>
+                    <th className="px-4 py-3 font-medium">Fecha</th>
+                    <th className="px-4 py-3" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-tinta-100">
+                  {registros.data?.items.map((r) => (
+                    <tr key={r.id} className="transition-colors hover:bg-tinta-50/70">
+                      <td className="px-4 py-3 font-medium text-tinta-900">{r.codigo}</td>
+                      <td className="px-4 py-3">
+                        <p className="text-tinta-900">{r.estudiante_nombre ?? '—'}</p>
+                        <p className="text-xs text-tinta-500">{r.estudiante_documento ?? ''}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <BadgeEstado estado={r.estado} />
+                      </td>
+                      <td className="px-4 py-3 text-tinta-600">
+                        {formatearFechaHora(r.updated_at)}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Link
+                          to={`/admin/registros/${r.id}`}
+                          className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-marca-600 transition-colors hover:bg-marca-50"
+                        >
+                          <Eye className="size-4" aria-hidden />
+                          Ver
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </Card>
