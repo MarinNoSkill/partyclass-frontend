@@ -67,8 +67,8 @@ export function PlanForm({ plan, alGuardar, alCancelar }: Props) {
     }
 
     const boletas = Number(numeroBoletas);
-    if (!Number.isInteger(boletas) || boletas < 1 || boletas > 20) {
-      setError('El número de boletas debe estar entre 1 y 20.');
+    if (!Number.isInteger(boletas) || boletas < 0 || boletas > 20) {
+      setError('El número de boletas debe estar entre 0 y 20.');
       return;
     }
 
@@ -144,7 +144,7 @@ export function PlanForm({ plan, alGuardar, alCancelar }: Props) {
         </span>
         <input
           type="number"
-          min={1}
+          min={0}
           max={20}
           value={numeroBoletas}
           onChange={(evento) => setNumeroBoletas(evento.target.value)}
@@ -152,7 +152,8 @@ export function PlanForm({ plan, alGuardar, alCancelar }: Props) {
         />
         <span className="mt-1 block text-xs text-tinta-400">
           Cuántas boletas de sorteo emite este plan. Se generará una copia de la boleta por cada
-          número asignado.
+          número asignado. Usa <strong>0</strong> si el plan no tiene sorteo (no asigna número ni
+          boletas).
         </span>
       </label>
 
