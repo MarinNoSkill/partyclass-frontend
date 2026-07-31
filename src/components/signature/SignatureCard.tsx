@@ -156,11 +156,11 @@ export function SignatureCard({
             alCambiar={setTieneTrazo}
           />
         ) : (
-          <div className="grid h-44 place-items-center overflow-hidden rounded-xl border border-tinta-200 bg-white p-4 sm:h-52">
+          <div className="h-44 overflow-hidden rounded-xl border border-tinta-200 bg-white p-4 sm:h-52">
             <img
               src={firma}
               alt={`Firma capturada ${posesivo}`}
-              className="max-h-full max-w-full object-contain"
+              className="mx-auto h-full w-full object-contain"
             />
           </div>
         )}

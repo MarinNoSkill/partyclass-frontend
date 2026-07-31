@@ -300,17 +300,19 @@ function BloqueFirmas({ firmas }: { firmas: FirmaAuditoria[] }) {
                 </span>
               </div>
 
-              <div className="mt-3 grid h-32 place-items-center rounded-lg border border-dashed border-tinta-300 bg-white p-2">
+              <div className="mt-3 h-40 overflow-hidden rounded-lg border border-dashed border-tinta-300 bg-white p-2">
                 {firma.url ? (
                   <img
                     src={firma.url}
                     alt={`Firma de ${firma.rol.toLowerCase()}`}
-                    className="max-h-full max-w-full object-contain"
+                    className="mx-auto h-full w-full object-contain"
                   />
                 ) : (
-                  <span className="text-xs text-red-600">
-                    El archivo no está disponible en Storage.
-                  </span>
+                  <div className="grid h-full place-items-center">
+                    <span className="text-xs text-red-600">
+                      El archivo no está disponible en Storage.
+                    </span>
+                  </div>
                 )}
               </div>
 
