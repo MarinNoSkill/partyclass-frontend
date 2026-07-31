@@ -1,16 +1,12 @@
 import { useState } from 'react';
-import {
-  AlertTriangle,
-  ClipboardCheck,
-  FileSignature,
-} from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ClipboardCheck } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { StepperNav } from '@/components/stepper/StepperNav';
 import { useToast } from '@/contexts/ToastContext';
 import { mensajeDeError } from '@/hooks/useMensajeError';
 import { ErrorApi } from '@/services/http';
-import { registroService } from '@/services/registro.service';
+import { firmaRemotaService } from '@/services/firmaRemota.service';
 import type { RegistroCreado } from '@/services/registro.service';
 import { ETIQUETA_ROL, formatearFechaSimple } from '@/utils/formato';
 import type { RegistroEnCurso } from '@/hooks/useRegistroBorrador';
@@ -18,6 +14,7 @@ import type { RolAcudiente } from '@/types/dominio.types';
 
 interface PropsPaso4 {
   registro: RegistroEnCurso;
+  solicitudId: string | null;
   alRetroceder: () => void;
   alRegistrar: (resultado: RegistroCreado) => void;
   /**
@@ -63,14 +60,13 @@ function nombreDe(persona: {
 }
 
 /**
- * Paso 4. Es el único punto del wizard que escribe en el servidor.
- *
- * Al confirmar se envía todo el registro de una vez: el backend crea las
- * filas, sube las firmas, asigna el número de sorteo y genera el convenio.
- * Si algo falla, no queda nada a medias.
+ * Paso 4. Con las firmas ya recogidas por enlace, finaliza la solicitud: el
+ * backend crea el registro con la misma lógica de siempre, asigna el número de
+ * sorteo y genera el convenio.
  */
 export function Paso4Confirmacion({
   registro,
+  solicitudId,
   alRetroceder,
   alRegistrar,
   alErrorDeDatos,
@@ -83,23 +79,9 @@ export function Paso4Confirmacion({
   const { plan, estudiante } = registro;
   const acudientesRegistrados = ROLES.filter((rol) => registro.acudientes[rol]);
 
-  /** Datos del registro listos para enviar. */
-  const construirPayload = () => ({
-    plan_id: plan!.id,
-    estudiante: estudiante!,
-    acudientes: acudientesRegistrados.map((rol) => ({
-      ...registro.acudientes[rol]!,
-      rol,
-    })),
-    firmas: acudientesRegistrados.map((rol) => ({
-      rol,
-      imagenBase64: registro.firmas[rol]!,
-    })),
-  });
-
   const finalizar = async () => {
-    if (!plan || !estudiante) {
-      setError('Faltan datos del plan o del estudiante. Revisa los pasos anteriores.');
+    if (!solicitudId) {
+      setError('Faltan las firmas. Vuelve al paso anterior y envía los correos de firma.');
       return;
     }
 
@@ -107,17 +89,15 @@ export function Paso4Confirmacion({
     setEnviando(true);
 
     try {
-      const resultado = await registroService.crear(construirPayload());
+      const resultado = await firmaRemotaService.finalizar(solicitudId);
 
       exito(
         'Registro creado',
         `Convenio ${resultado.codigo} · ${resultado.numerosConvenio.length} boleta(s)`,
       );
 
-      // El padre decide qué mostrar: guarda el resultado y limpia el wizard.
       alRegistrar(resultado);
     } catch (fallo) {
-      // Dato duplicado (documento o correo): el orquestador muestra su modal.
       if (fallo instanceof ErrorApi && CODIGOS_DATO_DUPLICADO.includes(fallo.codigo)) {
         alErrorDeDatos(fallo.codigo);
       } else {
@@ -133,24 +113,18 @@ export function Paso4Confirmacion({
       <Card className="space-y-4">
         <CardHeader
           titulo="Revisa la información"
-          descripcion="Nada se ha guardado todavía. Al confirmar se creará el registro y se generará el convenio con su número de sorteo."
+          descripcion="Los acudientes ya firmaron. Al confirmar se creará el registro y se generará el convenio con su número de sorteo."
           icono={<ClipboardCheck className="size-5" aria-hidden />}
           acciones={plan ? <Badge tono="marca">{plan.anio}</Badge> : undefined}
         />
 
         <dl className="divide-y divide-tinta-100">
           <FilaResumen etiqueta="Plan" valor={plan?.nombre ?? '—'} />
-
-          <FilaResumen
-            etiqueta="Estudiante"
-            valor={estudiante ? nombreDe(estudiante) : '—'}
-          />
+          <FilaResumen etiqueta="Estudiante" valor={estudiante ? nombreDe(estudiante) : '—'} />
           <FilaResumen
             etiqueta="Documento"
             valor={
-              estudiante
-                ? `${estudiante.tipo_documento} ${estudiante.numero_documento}`
-                : '—'
+              estudiante ? `${estudiante.tipo_documento} ${estudiante.numero_documento}` : '—'
             }
           />
           <FilaResumen
@@ -173,37 +147,17 @@ export function Paso4Confirmacion({
 
           <FilaResumen
             etiqueta="Firmas"
-            valor={acudientesRegistrados
-              .map((rol) => `${ETIQUETA_ROL[rol]} ✓`)
-              .join(' · ')}
+            valor={acudientesRegistrados.map((rol) => `${ETIQUETA_ROL[rol]} ✓`).join(' · ')}
           />
         </dl>
       </Card>
 
-      {/* Firmas capturadas, tal como se incrustarán */}
-      <Card>
-        <CardHeader
-          titulo="Firmas capturadas"
-          descripcion="Así quedarán en el convenio."
-          icono={<FileSignature className="size-5" aria-hidden />}
-          className="mb-4"
-        />
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          {acudientesRegistrados.map((rol) => (
-            <div key={rol} className="rounded-xl border border-tinta-200 p-3">
-              <p className="mb-2 text-xs font-medium text-tinta-500">{ETIQUETA_ROL[rol]}</p>
-              <div className="grid h-28 place-items-center rounded-lg bg-white">
-                <img
-                  src={registro.firmas[rol]}
-                  alt={`Firma ${rol.toLowerCase()}`}
-                  className="max-h-full max-w-full object-contain"
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
+      <div className="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+        <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" aria-hidden />
+        <p className="text-sm text-emerald-800">
+          Todas las firmas de autorización fueron recibidas por el enlace enviado a cada acudiente.
+        </p>
+      </div>
 
       {error && (
         <div
@@ -214,9 +168,6 @@ export function Paso4Confirmacion({
           <div className="text-sm text-red-800">
             <p className="font-medium">No se pudo crear el registro</p>
             <p className="mt-0.5">{error}</p>
-            <p className="mt-1.5 text-red-700">
-              Tus datos siguen aquí: corrige lo indicado y vuelve a intentarlo.
-            </p>
           </div>
         </div>
       )}
@@ -232,7 +183,6 @@ export function Paso4Confirmacion({
           etiquetaAvanzar="Confirmar y generar convenio"
         />
       </Card>
-
     </div>
   );
 }

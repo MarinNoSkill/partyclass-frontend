@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/Card';
 import { PASOS_RESERVA, Stepper } from '@/components/stepper/Stepper';
 import { Paso1Estudiante } from './Paso1Estudiante';
 import { Paso2Acudientes } from './Paso2Acudientes';
-import { Paso3Firmas } from './Paso3Firmas';
+import { Paso3FirmaRemota } from './Paso3FirmaRemota';
 import { Paso4Confirmacion } from './Paso4Confirmacion';
 import { SeleccionPlan } from './SeleccionPlan';
 import { RegistroListo } from './RegistroListo';
@@ -52,9 +52,7 @@ export function NuevaReservaPage({ planInicial }: Props = {}) {
     fijarEstudiante,
     fijarAcudiente,
     quitarAcudiente,
-    marcarVerificado,
-    fijarFirma,
-    quitarFirma,
+    fijarSolicitud,
     limpiar,
   } = useRegistroBorrador();
 
@@ -199,8 +197,8 @@ export function NuevaReservaPage({ planInicial }: Props = {}) {
       <div className="flex items-start gap-2.5 rounded-xl border border-marca-200 bg-marca-50 px-4 py-3">
         <Info className="mt-0.5 size-4 shrink-0 text-marca-600" aria-hidden />
         <p className="text-sm text-marca-900">
-          <strong>{registro.plan.nombre}</strong> · {registro.plan.anio}. El registro se
-          guardará al finalizar el último paso; hasta entonces nada se envía al servidor.
+          <strong>{registro.plan.nombre}</strong> · {registro.plan.anio}. En el paso de firmas
+          se envía el enlace a los acudientes; el registro se crea al confirmar el último paso.
         </p>
       </div>
 
@@ -231,21 +229,20 @@ export function NuevaReservaPage({ planInicial }: Props = {}) {
           )}
 
           {paso === 3 && (
-            <Paso3Firmas
-              acudientes={registro.acudientes}
-              firmas={registro.firmas}
-              verificados={registro.verificados}
-              alFirmar={fijarFirma}
-              alBorrarFirma={quitarFirma}
-              alVerificar={marcarVerificado}
+            <Paso3FirmaRemota
+              registro={registro}
+              solicitudId={registro.solicitudId}
+              alSolicitudCreada={fijarSolicitud}
               alContinuar={avanzar}
               alRetroceder={retroceder}
+              alErrorDeDatos={manejarErrorDeDatos}
             />
           )}
 
           {paso === 4 && (
             <Paso4Confirmacion
               registro={registro}
+              solicitudId={registro.solicitudId}
               alRetroceder={retroceder}
               // Solo se limpia tras un alta correcta: si falla, el operador
               // conserva todo lo que había escrito.

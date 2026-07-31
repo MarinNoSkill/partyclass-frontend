@@ -23,6 +23,9 @@ const ROLES: RolAcudiente[] = ['PADRE', 'MADRE'];
 /**
  * Paso 3. Las firmas se capturan y se conservan en memoria como data URLs;
  * suben a Storage junto con el resto del registro al finalizar.
+ *
+ * Lo usa el módulo de representantes. El wizard normal de estudiante usa la
+ * firma remota por enlace (Paso3FirmaRemota).
  */
 export function Paso3Firmas({
   acudientes,

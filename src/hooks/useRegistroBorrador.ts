@@ -12,6 +12,12 @@ export interface RegistroEnCurso {
   firmas: Partial<Record<RolAcudiente, string>>;
   /** Teléfonos verificados por SMS. Habilitan la firma de cada acudiente. */
   verificados: Partial<Record<RolAcudiente, boolean>>;
+  /**
+   * Solicitud de firma remota en curso (los acudientes reciben el enlace por
+   * correo). Se invalida si cambian los datos, porque los correos ya se
+   * enviaron con la información anterior.
+   */
+  solicitudId: string | null;
 }
 
 const ESTADO_INICIAL: RegistroEnCurso = {
@@ -20,6 +26,7 @@ const ESTADO_INICIAL: RegistroEnCurso = {
   acudientes: {},
   firmas: {},
   verificados: {},
+  solicitudId: null,
 };
 
 const CLAVE = 'partyclass.registro.encurso';
@@ -55,16 +62,16 @@ export function useRegistroBorrador() {
   }, [registro]);
 
   const fijarPlan = useCallback((plan: PlanConImagen) => {
-    setRegistro((previo) => ({ ...previo, plan }));
+    setRegistro((previo) => ({ ...previo, plan, solicitudId: null }));
   }, []);
 
   /** Vuelve al selector de plan sin perder lo ya escrito. */
   const limpiarPlan = useCallback(() => {
-    setRegistro((previo) => ({ ...previo, plan: null }));
+    setRegistro((previo) => ({ ...previo, plan: null, solicitudId: null }));
   }, []);
 
   const fijarEstudiante = useCallback((estudiante: EstudianteFormulario) => {
-    setRegistro((previo) => ({ ...previo, estudiante }));
+    setRegistro((previo) => ({ ...previo, estudiante, solicitudId: null }));
   }, []);
 
   const fijarAcudiente = useCallback((rol: RolAcudiente, datos: AcudienteFormulario) => {
@@ -79,6 +86,8 @@ export function useRegistroBorrador() {
         ...previo,
         acudientes: { ...previo.acudientes, [rol]: datos },
         verificados,
+        // Cambiar un acudiente invalida la solicitud de firma ya enviada.
+        solicitudId: null,
       };
     });
   }, []);
@@ -92,8 +101,12 @@ export function useRegistroBorrador() {
       // Firma y verificación sin acudiente son datos huérfanos: se van con él.
       delete firmas[rol];
       delete verificados[rol];
-      return { ...previo, acudientes, firmas, verificados };
+      return { ...previo, acudientes, firmas, verificados, solicitudId: null };
     });
+  }, []);
+
+  const fijarSolicitud = useCallback((solicitudId: string) => {
+    setRegistro((previo) => ({ ...previo, solicitudId }));
   }, []);
 
   const marcarVerificado = useCallback((rol: RolAcudiente) => {
@@ -133,6 +146,7 @@ export function useRegistroBorrador() {
     marcarVerificado,
     fijarFirma,
     quitarFirma,
+    fijarSolicitud,
     limpiar,
   };
 }
