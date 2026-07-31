@@ -481,18 +481,21 @@ function FilaPlan({
           alQuitar={() => void quitarConvenio.mutateAsync(plan.id).catch(() => undefined)}
           alVer={() => plan.imagenUrl && alVerImagen(plan.imagenUrl, `Convenio · ${plan.nombre}`)}
         />
-        <ControlImagenPlan
-          etiqueta="Boleta"
-          url={plan.boletaUrl}
-          presente={Boolean(plan.boleta_ruta)}
-          subiendo={subirBoleta.isPending}
-          quitando={quitarBoleta.isPending}
-          alSubir={(archivo) =>
-            conMensaje(subirBoleta.mutateAsync({ id: plan.id, archivo }), 'Boleta actualizada.')
-          }
-          alQuitar={() => void quitarBoleta.mutateAsync(plan.id).catch(() => undefined)}
-          alVer={() => plan.boletaUrl && alVerImagen(plan.boletaUrl, `Boleta · ${plan.nombre}`)}
-        />
+        {/* La boleta solo aplica si el plan emite boletas (numero_boletas > 0). */}
+        {plan.numero_boletas > 0 && (
+          <ControlImagenPlan
+            etiqueta="Boleta"
+            url={plan.boletaUrl}
+            presente={Boolean(plan.boleta_ruta)}
+            subiendo={subirBoleta.isPending}
+            quitando={quitarBoleta.isPending}
+            alSubir={(archivo) =>
+              conMensaje(subirBoleta.mutateAsync({ id: plan.id, archivo }), 'Boleta actualizada.')
+            }
+            alQuitar={() => void quitarBoleta.mutateAsync(plan.id).catch(() => undefined)}
+            alVer={() => plan.boletaUrl && alVerImagen(plan.boletaUrl, `Boleta · ${plan.nombre}`)}
+          />
+        )}
         <ControlImagenPlan
           etiqueta="Presentación"
           url={plan.presentacionUrl}
@@ -526,7 +529,7 @@ function FilaPlan({
               Falta el convenio
             </Badge>
           )}
-          {!plan.boleta_ruta && (
+          {plan.numero_boletas > 0 && !plan.boleta_ruta && (
             <Badge tono="alerta">
               <AlertTriangle className="mr-1 inline size-3" aria-hidden />
               Falta la boleta
