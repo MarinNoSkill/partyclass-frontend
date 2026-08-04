@@ -18,6 +18,8 @@ export interface RegistroCreado {
   /** Uno por boleta del plan. */
   numerosConvenio: string[];
   contratoId: string;
+  /** true si se continuó sin todas las firmas: convenio con marca «PENDIENTE». */
+  pendiente?: boolean;
 }
 
 export interface RegistroEliminado {

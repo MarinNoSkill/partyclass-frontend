@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Eye, FileSpreadsheet, Hash, Inbox, Search, Table2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader } from '@/components/ui/Card';
-import { BadgeEstado } from '@/components/ui/Badge';
+import { Badge, BadgeEstado } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Modal';
 import { Pagination } from '@/components/ui/Pagination';
@@ -187,9 +187,17 @@ export function RegistrosPage() {
                       </p>
                     </td>
                     <td className="px-4 py-3">
-                      <BadgeEstado estado={reserva.estado} />
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <BadgeEstado estado={reserva.estado} />
+                        {reserva.estado === 'COMPLETADA' &&
+                          reserva.total_firmas < reserva.total_acudientes && (
+                            <Badge tono="alerta">Pendiente de firmas</Badge>
+                          )}
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-tinta-600">{reserva.total_firmas}</td>
+                    <td className="px-4 py-3 text-tinta-600">
+                      {reserva.total_firmas}/{reserva.total_acudientes}
+                    </td>
                     <td className="px-4 py-3 text-tinta-600">
                       {formatearFechaHora(reserva.updated_at)}
                     </td>

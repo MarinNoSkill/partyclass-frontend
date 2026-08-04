@@ -59,17 +59,33 @@ export function RegistroListo({ resultado, alNuevoRegistro }: Props) {
   return (
     <div className="space-y-5">
     <Card className="mx-auto max-w-xl text-center">
-      <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-emerald-50 text-emerald-600">
+      <span
+        className={`mx-auto grid size-14 place-items-center rounded-2xl ${
+          resultado.pendiente
+            ? 'bg-amber-50 text-amber-600'
+            : 'bg-emerald-50 text-emerald-600'
+        }`}
+      >
         <CheckCircle2 className="size-7" aria-hidden />
       </span>
 
-      <h2 className="mt-4 text-lg font-semibold text-tinta-900">Registro completado</h2>
+      <h2 className="mt-4 text-lg font-semibold text-tinta-900">
+        {resultado.pendiente ? 'Registro creado · pendiente de firmas' : 'Registro completado'}
+      </h2>
       <p className="mt-1 text-sm text-tinta-500">
         El convenio se generó y quedó archivado con
         {resultado.numerosConvenio.length === 1
           ? ' el número que le correspondió.'
           : ` sus ${resultado.numerosConvenio.length} boletas.`}
       </p>
+
+      {resultado.pendiente && (
+        <div className="mx-auto mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm text-amber-800">
+          Faltan firmas: el convenio tiene la marca <strong>PENDIENTE</strong>. Cuando cada
+          acudiente firme desde el enlace de su correo, el registro se completa y el convenio se
+          regenera sin la marca.
+        </div>
+      )}
 
       <div className="mx-auto mt-5 w-fit rounded-2xl border-2 border-marca-200 bg-marca-50 px-8 py-4">
         <p className="text-[11px] font-medium tracking-wide text-marca-700 uppercase">

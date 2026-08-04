@@ -113,7 +113,7 @@ export function Paso4Confirmacion({
       <Card className="space-y-4">
         <CardHeader
           titulo="Revisa la información"
-          descripcion="Los acudientes ya firmaron. Al confirmar se creará el registro y se generará el convenio con su número de sorteo."
+          descripcion="Al confirmar se crea el registro con su número de sorteo. Si aún faltan firmas, el convenio sale marcado como PENDIENTE y se completa solo cuando cada acudiente firme desde su correo."
           icono={<ClipboardCheck className="size-5" aria-hidden />}
           acciones={plan ? <Badge tono="marca">{plan.anio}</Badge> : undefined}
         />
@@ -152,10 +152,11 @@ export function Paso4Confirmacion({
         </dl>
       </Card>
 
-      <div className="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-        <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" aria-hidden />
-        <p className="text-sm text-emerald-800">
-          Todas las firmas de autorización fueron recibidas por el enlace enviado a cada acudiente.
+      <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+        <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-amber-600" aria-hidden />
+        <p className="text-sm text-amber-800">
+          Se enviaron los enlaces de firma a los acudientes. Las firmas que falten se
+          incorporan solas cuando cada uno firme desde su correo.
         </p>
       </div>
 

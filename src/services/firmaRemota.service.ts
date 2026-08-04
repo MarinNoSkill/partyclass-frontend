@@ -43,6 +43,8 @@ export interface RegistroFinalizado {
   codigo: string;
   numerosConvenio: string[];
   contratoId: string;
+  /** true si se continuó sin todas las firmas: convenio con marca «PENDIENTE». */
+  pendiente: boolean;
 }
 
 export const firmaRemotaService = {

@@ -144,7 +144,7 @@ export function Paso3FirmaRemota({
               return (
                 <li
                   key={rol}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-tinta-200 px-4 py-3"
+                  className="flex flex-col gap-1 rounded-xl border border-tinta-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-tinta-900">{ETIQUETA_ROL[rol]}</p>
@@ -176,7 +176,9 @@ export function Paso3FirmaRemota({
       ) : (
         <Card className="space-y-3">
           <p className="text-sm text-tinta-700">
-            Enviamos el enlace de firma. Pídele a cada acudiente que revise su correo y firme.
+            Enviamos el enlace de firma. Puedes <strong>continuar sin esperar</strong>: el
+            convenio saldrá marcado como <strong>PENDIENTE</strong> y, cuando cada acudiente
+            firme desde su correo, se completa solo.
           </p>
           <ul className="space-y-2">
             {(estado?.firmantes ??
@@ -186,7 +188,7 @@ export function Paso3FirmaRemota({
                 key={f.rol}
                 className="flex items-center justify-between gap-3 rounded-xl border border-tinta-200 px-4 py-3"
               >
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-tinta-900">{ETIQUETA_ROL[f.rol]}</p>
                   {f.emailEnmascarado && (
                     <p className="truncate text-sm text-tinta-500">{f.emailEnmascarado}</p>
@@ -236,17 +238,17 @@ export function Paso3FirmaRemota({
       <Card>
         <StepperNav
           puedeRetroceder
-          puedeAvanzar={todosFirmaron}
+          // Basta con haber enviado los correos: se puede continuar aunque aún
+          // no hayan firmado (el registro queda pendiente).
+          puedeAvanzar={Boolean(solicitudId)}
           esUltimoPaso={false}
           alRetroceder={alRetroceder}
           alAvanzar={alContinuar}
-          etiquetaAvanzar="Continuar a confirmación"
+          etiquetaAvanzar={
+            todosFirmaron ? 'Continuar a confirmación' : 'Continuar (pendiente de firmas)'
+          }
           mensajeBloqueo={
-            !solicitudId
-              ? 'Envía los correos de firma para continuar.'
-              : todosFirmaron
-                ? undefined
-                : 'Esperando a que todos los acudientes firmen.'
+            solicitudId ? undefined : 'Envía los correos de firma para continuar.'
           }
         />
       </Card>

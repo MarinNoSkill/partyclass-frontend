@@ -97,6 +97,10 @@ function Cabecera({ reserva }: { reserva: ReservaAuditoria }) {
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-xl font-semibold text-tinta-900">{reserva.codigo}</h1>
             <BadgeEstado estado={reserva.estado} />
+            {reserva.estado === 'COMPLETADA' &&
+              reserva.firmas.length < reserva.acudientes.length && (
+                <Badge tono="alerta">Pendiente de firmas · convenio con marca</Badge>
+              )}
           </div>
           <p className="mt-1 text-sm text-tinta-500">
             Creada el {formatearFechaHora(reserva.created_at)}

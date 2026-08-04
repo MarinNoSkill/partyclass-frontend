@@ -16,6 +16,8 @@ interface PropsPaso3 {
   alVerificar: (rol: RolAcudiente) => void;
   alContinuar: () => void;
   alRetroceder: () => void;
+  /** Permite continuar aunque falten firmas (el registro queda pendiente). */
+  permitirSinFirmar?: boolean;
 }
 
 const ROLES: RolAcudiente[] = ['PADRE', 'MADRE'];
@@ -36,6 +38,7 @@ export function Paso3Firmas({
   alVerificar,
   alContinuar,
   alRetroceder,
+  permitirSinFirmar = false,
 }: PropsPaso3) {
   const registrados = ROLES.filter((rol) => acudientes[rol]);
   const sinVerificar = registrados.filter((rol) => !verificados[rol]);
@@ -44,12 +47,18 @@ export function Paso3Firmas({
 
   const nombreRol = (rol: RolAcudiente) => (rol === 'PADRE' ? 'padre' : 'madre');
 
+  // Con `permitirSinFirmar`, basta tener un acudiente para continuar; lo que
+  // falte queda pendiente (convenio con marca «PENDIENTE»).
+  const puedeAvanzar = permitirSinFirmar ? registrados.length > 0 : todosFirmaron;
+
   const mensajeBloqueo =
     registrados.length === 0
       ? 'Debes registrar al menos un acudiente en el paso 2.'
-      : sinVerificar.length > 0
-        ? `Falta verificar el correo de: ${sinVerificar.map(nombreRol).join(' y ')}.`
-        : `Falta la firma de: ${faltantes.map(nombreRol).join(' y ')}.`;
+      : permitirSinFirmar
+        ? undefined
+        : sinVerificar.length > 0
+          ? `Falta verificar el correo de: ${sinVerificar.map(nombreRol).join(' y ')}.`
+          : `Falta la firma de: ${faltantes.map(nombreRol).join(' y ')}.`;
 
   return (
     <div className="space-y-5">
@@ -76,14 +85,27 @@ export function Paso3Firmas({
         ))}
       </div>
 
+      {permitirSinFirmar && !todosFirmaron && registrados.length > 0 && (
+        <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-sm text-amber-800">
+            Puedes continuar sin firmar: el convenio saldrá marcado como{' '}
+            <strong>PENDIENTE</strong> hasta que se firme.
+          </p>
+        </div>
+      )}
+
       <Card>
         <StepperNav
           puedeRetroceder
-          puedeAvanzar={todosFirmaron}
+          puedeAvanzar={puedeAvanzar}
           esUltimoPaso={false}
           alRetroceder={alRetroceder}
           alAvanzar={alContinuar}
-          etiquetaAvanzar="Continuar a confirmación"
+          etiquetaAvanzar={
+            permitirSinFirmar && !todosFirmaron
+              ? 'Continuar (pendiente de firmas)'
+              : 'Continuar a confirmación'
+          }
           mensajeBloqueo={mensajeBloqueo}
         />
       </Card>

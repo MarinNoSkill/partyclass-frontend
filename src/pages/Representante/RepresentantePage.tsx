@@ -124,7 +124,10 @@ export function RepresentantePage() {
       const creado = await representanteService.registrar({
         estudiante,
         acudientes: acudientesRegistrados.map((rol) => ({ ...acudientes[rol]!, rol })),
-        firmas: acudientesRegistrados.map((rol) => ({ rol, imagenBase64: firmas[rol]! })),
+        // Solo las firmas realmente capturadas: las que falten quedan pendientes.
+        firmas: acudientesRegistrados
+          .filter((rol) => firmas[rol])
+          .map((rol) => ({ rol, imagenBase64: firmas[rol]! })),
         companeros: companerosLlenos,
       });
       setResultado(creado);
@@ -209,16 +212,29 @@ export function RepresentantePage() {
     return (
       <div className="mx-auto max-w-2xl">
         <Card className="text-center">
-          <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-emerald-50 text-emerald-600">
+          <span
+            className={`mx-auto grid size-14 place-items-center rounded-2xl ${
+              resultado.pendiente ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'
+            }`}
+          >
             <CheckCircle2 className="size-7" aria-hidden />
           </span>
           <h1 className="mt-4 font-display text-xl font-bold text-tinta-900">
-            ¡Registro de representante completado!
+            {resultado.pendiente
+              ? 'Registro creado · pendiente de firma'
+              : '¡Registro de representante completado!'}
           </h1>
           <p className="mt-1 text-sm text-tinta-500">
             Código <strong className="text-tinta-800">{resultado.codigo}</strong>. Descarga tu
             convenio y el Excel de compañeros.
           </p>
+
+          {resultado.pendiente && (
+            <div className="mx-auto mt-4 max-w-md rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm text-amber-800">
+              Faltan firmas: el convenio lleva la marca <strong>PENDIENTE</strong>. Fírmalo y
+              vuelve a registrarlo, o pídele al administrador que lo gestione.
+            </div>
+          )}
 
           <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
             <Button
@@ -308,6 +324,7 @@ export function RepresentantePage() {
               alVerificar={() => undefined}
               alContinuar={() => irA(4)}
               alRetroceder={() => irA(2)}
+              permitirSinFirmar
             />
           )}
 

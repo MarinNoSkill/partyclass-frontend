@@ -18,6 +18,8 @@ export interface RegistroRepresentantePayload {
 export interface RepresentanteCreado {
   reservaId: string;
   codigo: string;
+  /** true si se envió sin todas las firmas (convenio con marca «PENDIENTE»). */
+  pendiente: boolean;
 }
 
 /** Módulo público de representantes (solo requiere API key). */
