@@ -105,6 +105,8 @@ export interface ReservaResumen {
   total_firmas: number;
   total_acudientes: number;
   tiene_contrato: boolean;
+  /** Momento en que se incluyó por primera vez en un Excel (null = no descargada). */
+  descargado_en: string | null;
 }
 
 export interface ParametroConfiguracion {

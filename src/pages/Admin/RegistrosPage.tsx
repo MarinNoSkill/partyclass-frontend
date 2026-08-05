@@ -83,6 +83,10 @@ export function RegistrosPage() {
       enlace.download = `registros-${new Date().toISOString().slice(0, 10)}.xlsx`;
       enlace.click();
       URL.revokeObjectURL(url);
+
+      // El export marcó los registros como descargados: se refresca el listado
+      // para que sus badges pasen a «Descargado».
+      void cliente.invalidateQueries({ queryKey: ['reservas'] });
     } catch (fallo) {
       toast.error(mensajeDeError(fallo));
     } finally {
@@ -193,6 +197,13 @@ export function RegistrosPage() {
                           reserva.total_firmas < reserva.total_acudientes && (
                             <Badge tono="alerta">Pendiente de firmas</Badge>
                           )}
+                        {reserva.descargado_en ? (
+                          <span title={`Descargado el ${formatearFechaHora(reserva.descargado_en)}`}>
+                            <Badge tono="neutro">Descargado</Badge>
+                          </span>
+                        ) : (
+                          <Badge tono="marca">Nuevo</Badge>
+                        )}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-tinta-600">
