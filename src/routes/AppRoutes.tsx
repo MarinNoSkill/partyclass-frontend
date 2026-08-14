@@ -6,12 +6,12 @@ import { RepresentantePage } from '@/pages/Representante/RepresentantePage';
 import { FirmarPage } from '@/pages/Firmar/FirmarPage';
 import { RutaProtegida } from '@/routes/RutaProtegida';
 import { AdminLayout } from '@/pages/Admin/AdminLayout';
+import { PanelInicio } from '@/pages/Admin/PanelInicio';
 import { LoginPage } from '@/pages/Admin/LoginPage';
 import { RegistrosPage } from '@/pages/Admin/RegistrosPage';
 import { RegistroDetallePage } from '@/pages/Admin/RegistroDetallePage';
 import { NumeracionPage } from '@/pages/Admin/NumeracionPage';
 import { PlanesPage } from '@/pages/Admin/PlanesPage';
-import { InicioImagenesPage } from '@/pages/Admin/InicioImagenesPage';
 import { DocumentosBloqueadosPage } from '@/pages/Admin/DocumentosBloqueadosPage';
 import { RepresentantesPage } from '@/pages/Admin/RepresentantesPage';
 import { DashboardPage } from '@/pages/Dashboard/DashboardPage';
@@ -48,12 +48,13 @@ export function AppRoutes() {
       <Route path="/admin/login" element={<LoginPage />} />
 
       <Route path="/admin" element={<RutaProtegida />}>
+        {/* Pantalla de inicio del panel (lanzador de módulos), sin el marco. */}
+        <Route index element={<PanelInicio />} />
         <Route element={<AdminLayout />}>
-          <Route index element={<DashboardPage />} />
+          <Route path="dashboard" element={<DashboardPage />} />
           <Route path="registros" element={<RegistrosPage />} />
           <Route path="registros/:id" element={<RegistroDetallePage />} />
           <Route path="planes" element={<PlanesPage />} />
-          <Route path="inicio" element={<InicioImagenesPage />} />
           <Route path="documentos" element={<DocumentosBloqueadosPage />} />
           <Route path="representantes" element={<RepresentantesPage />} />
           <Route path="numeracion" element={<NumeracionPage />} />

@@ -1,10 +1,10 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft,
+  ExternalLink,
   Hash,
-  Images,
-  Layers,
   LayoutDashboard,
+  LayoutGrid,
+  Layers,
   LogOut,
   Settings,
   ShieldOff,
@@ -15,10 +15,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/utils/cn';
 
 const SECCIONES = [
-  { etiqueta: 'Resumen', ruta: '/admin', icono: LayoutDashboard, exacta: true },
+  { etiqueta: 'Panel', ruta: '/admin', icono: LayoutGrid, exacta: true },
+  { etiqueta: 'Dashboard', ruta: '/admin/dashboard', icono: LayoutDashboard },
   { etiqueta: 'Registros', ruta: '/admin/registros', icono: Table2 },
   { etiqueta: 'Planes', ruta: '/admin/planes', icono: Layers },
-  { etiqueta: 'Inicio', ruta: '/admin/inicio', icono: Images },
   { etiqueta: 'Documentos', ruta: '/admin/documentos', icono: ShieldOff },
   { etiqueta: 'Representantes', ruta: '/admin/representantes', icono: UserRoundCog },
   { etiqueta: 'Numeración', ruta: '/admin/numeracion', icono: Hash },
@@ -43,11 +43,13 @@ export function AdminLayout() {
     <div className="min-h-dvh bg-tinta-50">
       <header className="fondo-fiesta text-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
-          <img
-            src="/logo.webp"
-            alt="PartyClass"
-            className="h-10 w-auto shrink-0 drop-shadow-[0_2px_8px_rgb(0_0_0/0.4)]"
-          />
+          <Link to="/admin" className="shrink-0" title="Ir al panel">
+            <img
+              src="/logo.webp"
+              alt="PartyClass"
+              className="h-10 w-auto drop-shadow-[0_2px_8px_rgb(0_0_0/0.4)]"
+            />
+          </Link>
 
           <div className="mr-auto min-w-0">
             <p className="font-display text-sm font-bold">Panel de administración</p>
@@ -60,7 +62,7 @@ export function AdminLayout() {
             to="/"
             className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
           >
-            <ArrowLeft className="size-4" aria-hidden />
+            <ExternalLink className="size-4" aria-hidden />
             <span className="hidden sm:inline">Ir al registro</span>
           </NavLink>
 

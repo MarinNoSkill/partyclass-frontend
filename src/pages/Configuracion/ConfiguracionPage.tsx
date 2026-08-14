@@ -9,6 +9,7 @@ import { GrupoCampos, Input } from '@/components/forms/FormField';
 import { configuracionService } from '@/services/configuracion.service';
 import { mensajeDeError, useReportarError } from '@/hooks/useMensajeError';
 import { useToast } from '@/contexts/ToastContext';
+import { InicioImagenesPage } from '@/pages/Admin/InicioImagenesPage';
 
 const CLAVE_QUERY = ['configuracion'] as const;
 
@@ -119,6 +120,11 @@ export function ConfiguracionPage() {
         >
           Guardar cambios
         </Button>
+      </div>
+
+      {/* Gestión de las imágenes del inicio público (antes un módulo aparte). */}
+      <div className="border-t border-tinta-200 pt-6">
+        <InicioImagenesPage />
       </div>
     </div>
   );
