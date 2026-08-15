@@ -186,3 +186,103 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ==========================================================================
+   Tema negro/dorado con alcance (.tema-oro)
+   Aplica el estilo del panel a TODO el contenido del admin sin reescribir cada
+   página. Van SIN @layer, así ganan a las utilidades de Tailwind (que sí están
+   en una capa) por orden de cascada, sin necesitar !important.
+   ========================================================================== */
+.tema-oro {
+  color: rgb(255 255 255 / 0.9);
+}
+
+/* Superficies (tarjetas, fondos suaves) */
+.tema-oro .bg-white {
+  background-color: rgb(19 15 10 / 0.72);
+}
+.tema-oro .bg-tinta-50 {
+  background-color: rgb(255 255 255 / 0.04);
+}
+.tema-oro .bg-tinta-100 {
+  background-color: rgb(255 255 255 / 0.07);
+}
+
+/* Bordes y divisores */
+.tema-oro .border-tinta-100,
+.tema-oro .border-tinta-200,
+.tema-oro .border-tinta-300 {
+  border-color: rgb(230 183 61 / 0.18);
+}
+.tema-oro .divide-tinta-100 > :not([hidden]) ~ :not([hidden]),
+.tema-oro .divide-tinta-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgb(230 183 61 / 0.14);
+}
+
+/* Texto */
+.tema-oro .text-tinta-900,
+.tema-oro .text-tinta-800 {
+  color: rgb(255 255 255 / 0.92);
+}
+.tema-oro .text-tinta-700,
+.tema-oro .text-tinta-600 {
+  color: rgb(255 255 255 / 0.72);
+}
+.tema-oro .text-tinta-500 {
+  color: rgb(255 255 255 / 0.55);
+}
+.tema-oro .text-tinta-400,
+.tema-oro .text-tinta-300 {
+  color: rgb(255 255 255 / 0.42);
+}
+
+/* Acento de marca → dorado (chips e iconos de encabezado, enlaces) */
+.tema-oro .bg-marca-50 {
+  background-color: rgb(230 183 61 / 0.12);
+}
+.tema-oro .text-marca-600,
+.tema-oro .text-marca-700 {
+  color: rgb(237 203 99);
+}
+
+/* Campos de formulario */
+.tema-oro input:not([type='checkbox']):not([type='radio']),
+.tema-oro select,
+.tema-oro textarea {
+  background-color: rgb(255 255 255 / 0.05);
+  color: #fff;
+  border-color: rgb(230 183 61 / 0.28);
+}
+.tema-oro input::placeholder,
+.tema-oro textarea::placeholder {
+  color: rgb(255 255 255 / 0.35);
+}
+
+/* Estados hover: sin esto, al pasar el mouse volvían a verse claros. */
+.tema-oro .hover\:bg-white:hover,
+.tema-oro .hover\:bg-tinta-50:hover,
+.tema-oro .hover\:bg-tinta-100:hover {
+  background-color: rgb(255 255 255 / 0.08);
+}
+.tema-oro .hover\:bg-marca-50:hover {
+  background-color: rgb(230 183 61 / 0.14);
+}
+.tema-oro .hover\:text-tinta-900:hover,
+.tema-oro .hover\:text-tinta-800:hover,
+.tema-oro .hover\:text-tinta-700:hover {
+  color: rgb(255 255 255 / 0.92);
+}
+.tema-oro .hover\:text-marca-600:hover,
+.tema-oro .hover\:text-marca-700:hover {
+  color: rgb(237 203 99);
+}
+.tema-oro .hover\:border-tinta-200:hover,
+.tema-oro .hover\:border-tinta-300:hover {
+  border-color: rgb(230 183 61 / 0.35);
+}
+
+/* Excepción: el lienzo donde se muestra la firma debe seguir BLANCO para que
+   el trazo (oscuro sobre transparente) se vea. */
+.tema-oro .firma-fondo {
+  background-color: #fff;
+}

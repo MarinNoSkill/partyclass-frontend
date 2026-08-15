@@ -304,7 +304,7 @@ function BloqueFirmas({ firmas }: { firmas: FirmaAuditoria[] }) {
                 </span>
               </div>
 
-              <div className="mt-3 h-40 overflow-hidden rounded-lg border border-dashed border-tinta-300 bg-white p-2">
+              <div className="firma-fondo mt-3 h-40 overflow-hidden rounded-lg border border-dashed border-tinta-300 bg-white p-2">
                 {firma.url ? (
                   <img
                     src={firma.url}
