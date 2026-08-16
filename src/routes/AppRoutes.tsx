@@ -4,6 +4,7 @@ import { NuevaReservaPage } from '@/pages/NuevaReserva/NuevaReservaPage';
 import { InscripcionPage } from '@/pages/NuevaReserva/InscripcionPage';
 import { RepresentantePage } from '@/pages/Representante/RepresentantePage';
 import { FirmarPage } from '@/pages/Firmar/FirmarPage';
+import { AutorizacionesPage } from '@/pages/Autorizaciones/AutorizacionesPage';
 import { RutaProtegida } from '@/routes/RutaProtegida';
 import { AdminLayout } from '@/pages/Admin/AdminLayout';
 import { PanelInicio } from '@/pages/Admin/PanelInicio';
@@ -40,6 +41,8 @@ export function AppRoutes() {
         <Route path="representante" element={<RepresentantePage />} />
         {/* Firma remota: la abre el acudiente desde el correo. */}
         <Route path="firmar/:token" element={<FirmarPage />} />
+        {/* Módulo de autorizaciones (documento + código). */}
+        <Route path="autorizaciones" element={<AutorizacionesPage />} />
         {/* Cualquier ruta pública desconocida vuelve al registro. */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

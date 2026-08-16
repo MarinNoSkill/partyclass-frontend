@@ -24,13 +24,24 @@ import {
   useDesbloquearDocumento,
   useDocumentosBloqueados,
 } from '@/hooks/useDocumentosBloqueados';
+import { BadgeCheck, ShieldOff as ShieldOffTab, UserPlus } from 'lucide-react';
+import { CargarEstudiantes, DocumentosPermitidos } from './AutorizacionesAdmin';
 import { cn } from '@/utils/cn';
+
+type Pestana = 'bloqueados' | 'permitidos' | 'estudiantes';
+
+const PESTANAS: Array<{ clave: Pestana; etiqueta: string; icono: typeof BadgeCheck }> = [
+  { clave: 'bloqueados', etiqueta: 'Bloqueados', icono: ShieldOffTab },
+  { clave: 'permitidos', etiqueta: 'Permitidos', icono: BadgeCheck },
+  { clave: 'estudiantes', etiqueta: 'Cargar estudiantes', icono: UserPlus },
+];
 
 /**
  * Bloqueo manual de documentos. El admin escribe uno o varios documentos y
  * elige el año (o «todos»): esos documentos ya no podrán registrarse.
  */
 export function DocumentosBloqueadosPage() {
+  const [pestana, setPestana] = useState<Pestana>('bloqueados');
   const lista = useDocumentosBloqueados();
   const planes = usePlanesAdmin();
   const bloquear = useBloquearDocumentos();
@@ -153,6 +164,31 @@ export function DocumentosBloqueadosPage() {
 
   return (
     <div className="space-y-5">
+      {/* Pestañas: sub-módulos navegables de Documentos */}
+      <div className="flex flex-wrap gap-1 rounded-xl border border-tinta-200 bg-tinta-50 p-1">
+        {PESTANAS.map((p) => (
+          <button
+            key={p.clave}
+            type="button"
+            onClick={() => setPestana(p.clave)}
+            className={cn(
+              'inline-flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors',
+              pestana === p.clave
+                ? 'bg-marca-600 text-white shadow-sm'
+                : 'text-tinta-600 hover:bg-white',
+            )}
+          >
+            <p.icono className="size-4" aria-hidden />
+            {p.etiqueta}
+          </button>
+        ))}
+      </div>
+
+      {pestana === 'permitidos' && <DocumentosPermitidos />}
+      {pestana === 'estudiantes' && <CargarEstudiantes />}
+
+      {pestana === 'bloqueados' && (
+      <>
       <Card sinRelleno>
         <CardHeader
           titulo="Documentos bloqueados"
@@ -455,6 +491,8 @@ export function DocumentosBloqueadosPage() {
           )}
         </div>
       </Card>
+      </>
+      )}
     </div>
   );
 }

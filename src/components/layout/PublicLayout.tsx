@@ -35,6 +35,8 @@ export function PublicLayout() {
               Experiencias {anioActual} – {anioActual + 1}
             </p>
           </div>
+          {/* Acceso al módulo de Autorizaciones oculto por ahora. La ruta
+              /autorizaciones sigue activa; para mostrarlo, restaurar el NavLink. */}
         </div>
         <div className="divisor-oro" aria-hidden />
       </header>
