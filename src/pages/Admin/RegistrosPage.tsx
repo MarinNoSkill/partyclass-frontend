@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Eye, FileSpreadsheet, Hash, Inbox, Search, Table2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader } from '@/components/ui/Card';
+import { ConfiguracionContratos } from './ConfiguracionContratos';
 import { Badge, BadgeEstado } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Modal';
@@ -71,6 +72,7 @@ export function RegistrosPage() {
   const cerrarConfirmacion = () => setRegistroAEliminar(null);
 
   const [exportando, setExportando] = useState(false);
+  const [vista, setVista] = useState<'registros' | 'contratos'>('registros');
 
   const exportar = async () => {
     setExportando(true);
@@ -96,6 +98,28 @@ export function RegistrosPage() {
 
   return (
     <>
+    <div className="mb-5 flex flex-wrap gap-1 rounded-xl border border-tinta-200 bg-tinta-50 p-1">
+      {([
+        { clave: 'registros', etiqueta: 'Registros' },
+        { clave: 'contratos', etiqueta: 'Configuración de contratos' },
+      ] as const).map((t) => (
+        <button
+          key={t.clave}
+          type="button"
+          onClick={() => setVista(t.clave)}
+          className={
+            'flex-1 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors ' +
+            (vista === t.clave ? 'bg-marca-600 text-white shadow-sm' : 'text-tinta-600 hover:bg-white')
+          }
+        >
+          {t.etiqueta}
+        </button>
+      ))}
+    </div>
+
+    {vista === 'contratos' && <ConfiguracionContratos />}
+
+    {vista === 'registros' && (
     <Card sinRelleno>
       <CardHeader
         titulo="Registros"
@@ -254,6 +278,7 @@ export function RegistrosPage() {
         </>
       )}
     </Card>
+    )}
 
     <Modal
       abierto={registroAEliminar !== null}

@@ -1,4 +1,5 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, NavLink } from 'react-router-dom';
+import { ShieldCheck } from 'lucide-react';
 import { Toaster } from '@/components/ui/Toaster';
 import { config } from '@/utils/config';
 
@@ -35,8 +36,20 @@ export function PublicLayout() {
               Experiencias {anioActual} – {anioActual + 1}
             </p>
           </div>
-          {/* Acceso al módulo de Autorizaciones oculto por ahora. La ruta
-              /autorizaciones sigue activa; para mostrarlo, restaurar el NavLink. */}
+
+          <NavLink
+            to="/autorizaciones"
+            className={({ isActive }) =>
+              `ml-auto inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                isActive
+                  ? 'border-oro-300 bg-oro-50 text-oro-800'
+                  : 'border-oro-200 text-oro-800 hover:bg-oro-50'
+              }`
+            }
+          >
+            <ShieldCheck className="size-4" aria-hidden />
+            <span className="hidden sm:inline">Autorizaciones</span>
+          </NavLink>
         </div>
         <div className="divisor-oro" aria-hidden />
       </header>

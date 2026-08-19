@@ -1,35 +1,48 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle,
   ArrowLeft,
   BadgeCheck,
+  Check,
+  FileText,
   KeyRound,
-  Mail,
   ShieldCheck,
+  Upload,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/forms/FormField';
+import { Spinner } from '@/components/ui/Spinner';
 import { useToast } from '@/contexts/ToastContext';
 import { mensajeDeError } from '@/hooks/useMensajeError';
 import {
   autorizacionesService,
   type AlumnoAutorizacion,
   type DatosAlumno,
+  type Requisito,
 } from '@/services/autorizaciones.service';
 
 type Paso = 'documento' | 'codigo' | 'ficha';
 
 const TIPOS_DOC = ['CC', 'TI', 'RC', 'CE', 'PA'] as const;
 
-const CAMPOS: Array<{ clave: keyof DatosAlumno; etiqueta: string; tipo?: string }> = [
-  { clave: 'primer_nombre', etiqueta: 'Primer nombre' },
+type Campo = {
+  clave: keyof DatosAlumno;
+  etiqueta: string;
+  tipo?: string;
+  select?: boolean;
+  requerido?: boolean;
+};
+
+const CAMPOS: Campo[] = [
+  { clave: 'tipo_documento', etiqueta: 'Tipo de documento', select: true, requerido: true },
+  { clave: 'primer_nombre', etiqueta: 'Primer nombre', requerido: true },
   { clave: 'segundo_nombre', etiqueta: 'Segundo nombre' },
-  { clave: 'primer_apellido', etiqueta: 'Primer apellido' },
+  { clave: 'primer_apellido', etiqueta: 'Primer apellido', requerido: true },
   { clave: 'segundo_apellido', etiqueta: 'Segundo apellido' },
-  { clave: 'fecha_nacimiento', etiqueta: 'Fecha de nacimiento', tipo: 'date' },
-  { clave: 'email', etiqueta: 'Correo', tipo: 'email' },
+  { clave: 'fecha_nacimiento', etiqueta: 'Fecha de nacimiento', tipo: 'date', requerido: true },
+  { clave: 'email', etiqueta: 'Correo', tipo: 'email', requerido: true },
   { clave: 'telefono', etiqueta: 'Teléfono' },
   { clave: 'grado', etiqueta: 'Grado' },
   { clave: 'grupo', etiqueta: 'Grupo' },
@@ -38,6 +51,12 @@ const CAMPOS: Array<{ clave: keyof DatosAlumno; etiqueta: string; tipo?: string 
   { clave: 'direccion', etiqueta: 'Dirección' },
   { clave: 'ciudad', etiqueta: 'Ciudad' },
 ];
+
+/** Un campo está vacío en la ficha si no trae valor desde la base. */
+function vacio(alumno: AlumnoAutorizacion, clave: keyof DatosAlumno): boolean {
+  const valor = alumno[clave as keyof AlumnoAutorizacion];
+  return typeof valor === 'string' ? valor.trim() === '' : valor == null;
+}
 
 /**
  * Módulo público de Autorizaciones: el estudiante ingresa con su documento
@@ -48,7 +67,7 @@ export function AutorizacionesPage() {
   const [paso, setPaso] = useState<Paso>('documento');
   const [documento, setDocumento] = useState('');
   const [codigo, setCodigo] = useState('');
-  const [correo, setCorreo] = useState('');
+  const [correo] = useState('');
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,29 +75,72 @@ export function AutorizacionesPage() {
   const [alumno, setAlumno] = useState<AlumnoAutorizacion | null>(null);
   const [editando, setEditando] = useState(false);
   const [datos, setDatos] = useState<DatosAlumno>({});
+  const [requisitos, setRequisitos] = useState<Requisito[]>([]);
+  const [subiendo, setSubiendo] = useState<string | null>(null);
+  const [docUrl, setDocUrl] = useState<string | null>(null);
+  const [docMotivo, setDocMotivo] = useState<string | null>(null);
+  const [cargandoDoc, setCargandoDoc] = useState(false);
 
   const { exito } = useToast();
+
+  // Al entrar (con datos completos): carga los requisitos y el documento
+  // incrustado (plantilla del plan con los datos ya montados).
+  useEffect(() => {
+    if (paso !== 'ficha' || editando || !token) return;
+    autorizacionesService.requisitos(token).then(setRequisitos).catch(() => undefined);
+
+    let url: string | null = null;
+    let vivo = true;
+    setCargandoDoc(true);
+    setDocMotivo(null);
+    setDocUrl(null);
+    autorizacionesService
+      .estadoDocumento(token)
+      .then(async (estado) => {
+        if (!vivo) return;
+        if (!estado.disponible) {
+          setDocMotivo(estado.motivo ?? 'Documento no disponible.');
+          return;
+        }
+        const blob = await autorizacionesService.documentoBlob(token);
+        if (!vivo) return;
+        url = URL.createObjectURL(blob);
+        setDocUrl(url);
+      })
+      .catch(() => vivo && setDocMotivo('No se pudo cargar el documento.'))
+      .finally(() => vivo && setCargandoDoc(false));
+
+    return () => {
+      vivo = false;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [paso, editando, token]);
+
+  const subir = async (tipo: string, archivo: File) => {
+    setSubiendo(tipo);
+    setError(null);
+    try {
+      await autorizacionesService.cargar(token, tipo, archivo);
+      setRequisitos((rs) => rs.map((r) => (r.tipo === tipo ? { ...r, subido: true } : r)));
+      exito('Documento subido');
+    } catch (fallo) {
+      setError(mensajeDeError(fallo));
+    } finally {
+      setSubiendo(null);
+    }
+  };
 
   const continuarDocumento = async () => {
     setError(null);
     setCargando(true);
     try {
-      const estado = await autorizacionesService.validarDocumento(documento.trim());
-      if (!estado.permitido) {
-        setError('Este documento no está autorizado para este módulo.');
-        return;
-      }
-      if (!estado.existe) {
-        setError('No encontramos un estudiante con ese documento. Contacta al administrador.');
-        return;
-      }
-      if (!estado.tieneCorreo) {
-        setError('Tu documento no tiene un correo registrado. Contacta al administrador.');
-        return;
-      }
-      const { correoEnmascarado } = await autorizacionesService.enviarCodigo(documento.trim());
-      setCorreo(correoEnmascarado);
-      setPaso('codigo');
+      // OTP desactivado por ahora: ingreso directo con el documento.
+      const ingreso = await autorizacionesService.ingresar(documento.trim());
+      setToken(ingreso.token);
+      setAlumno(ingreso.alumno);
+      setDatos(fichaAEditable(ingreso.alumno));
+      setEditando(ingreso.faltanDatos);
+      setPaso('ficha');
     } catch (fallo) {
       setError(mensajeDeError(fallo));
     } finally {
@@ -121,6 +183,12 @@ export function AutorizacionesPage() {
     }
   };
 
+  // Solo se piden los datos que faltan; lo que ya está en la base no se edita.
+  const faltantes = alumno ? CAMPOS.filter((c) => vacio(alumno, c.clave)) : [];
+  const puedeGuardar = faltantes
+    .filter((c) => c.requerido)
+    .every((c) => ((datos[c.clave] as string) ?? '').trim() !== '');
+
   return (
     <div className="mx-auto max-w-2xl space-y-5">
       <Link
@@ -131,10 +199,14 @@ export function AutorizacionesPage() {
         Volver
       </Link>
 
-      <Card>
+      <Card className="border-marca-100 bg-linear-to-br from-marca-50/60 to-white">
         <CardHeader
-          titulo="Autorizaciones"
-          descripcion="Ingresa con tu documento y un código que enviaremos a tu correo."
+          titulo="Autorización de asistencia"
+          descripcion={
+            paso === 'ficha'
+              ? 'Revisa tu documento y sube los documentos requeridos.'
+              : 'Ingresa con tu número de documento para continuar.'
+          }
           icono={<ShieldCheck className="size-5" aria-hidden />}
         />
       </Card>
@@ -153,17 +225,22 @@ export function AutorizacionesPage() {
         <Card className="space-y-4">
           <Input
             etiqueta="Número de documento"
+            name="documento_autorizacion"
             value={documento}
             onChange={(e) => setDocumento(e.target.value)}
+            inputMode="numeric"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
             autoFocus
           />
           <Button
             onClick={() => void continuarDocumento()}
             cargando={cargando}
             disabled={documento.trim().length < 4}
-            iconoIzquierda={<Mail className="size-4" aria-hidden />}
+            iconoIzquierda={<ShieldCheck className="size-4" aria-hidden />}
           >
-            Enviarme el código
+            Ingresar
           </Button>
         </Card>
       )}
@@ -202,39 +279,44 @@ export function AutorizacionesPage() {
             <Card className="space-y-4">
               <CardHeader
                 titulo="Completa tus datos"
-                descripcion="Faltan datos en tu ficha. Complétalos para continuar."
+                descripcion="Solo faltan estos datos en tu ficha. Complétalos para continuar; una vez guardados no podrás cambiarlos."
                 icono={<BadgeCheck className="size-5" aria-hidden />}
               />
               <div className="grid gap-4 sm:grid-cols-2">
-                <Select
-                  etiqueta="Tipo de documento"
-                  placeholder="Selecciona…"
-                  opciones={TIPOS_DOC.map((t) => ({ valor: t, etiqueta: t }))}
-                  value={datos.tipo_documento ?? ''}
-                  onChange={(e) => setDatos((d) => ({ ...d, tipo_documento: e.target.value }))}
-                />
-                {CAMPOS.map((c) => (
-                  <Input
-                    key={c.clave}
-                    etiqueta={c.etiqueta}
-                    type={c.tipo}
-                    value={(datos[c.clave] as string) ?? ''}
-                    onChange={(e) => setDatos((d) => ({ ...d, [c.clave]: e.target.value }))}
-                  />
-                ))}
+                {faltantes.map((c) =>
+                  c.select ? (
+                    <Select
+                      key={c.clave}
+                      etiqueta={`${c.etiqueta}${c.requerido ? ' *' : ''}`}
+                      placeholder="Selecciona…"
+                      opciones={TIPOS_DOC.map((t) => ({ valor: t, etiqueta: t }))}
+                      value={(datos[c.clave] as string) ?? ''}
+                      onChange={(e) => setDatos((d) => ({ ...d, [c.clave]: e.target.value }))}
+                    />
+                  ) : (
+                    <Input
+                      key={c.clave}
+                      etiqueta={`${c.etiqueta}${c.requerido ? ' *' : ''}`}
+                      type={c.tipo}
+                      value={(datos[c.clave] as string) ?? ''}
+                      onChange={(e) => setDatos((d) => ({ ...d, [c.clave]: e.target.value }))}
+                    />
+                  ),
+                )}
               </div>
-              <Button onClick={() => void guardar()} cargando={cargando}>
+              <Button onClick={() => void guardar()} cargando={cargando} disabled={!puedeGuardar}>
                 Guardar y continuar
               </Button>
             </Card>
           ) : (
+            <>
             <Card className="space-y-4">
               <CardHeader
                 titulo="Tus datos"
-                descripcion="Información registrada del estudiante."
+                descripcion="Información registrada del estudiante (no editable)."
                 icono={<BadgeCheck className="size-5" aria-hidden />}
               />
-              <dl className="divide-y divide-tinta-100">
+              <dl className="grid gap-x-8 sm:grid-cols-2">
                 <Fila etiqueta="Documento" valor={`${alumno.tipo_documento ?? ''} ${alumno.numero_documento}`} />
                 <Fila etiqueta="Nombre" valor={nombre(alumno)} />
                 <Fila etiqueta="Fecha de nacimiento" valor={alumno.fecha_nacimiento} />
@@ -247,10 +329,79 @@ export function AutorizacionesPage() {
                 <Fila etiqueta="Dirección" valor={alumno.direccion} />
                 <Fila etiqueta="Ciudad" valor={alumno.ciudad} />
               </dl>
-              <Button variante="contorno" onClick={() => setEditando(true)}>
-                Editar datos
-              </Button>
             </Card>
+
+            {/* Documento de autorización del plan, con los datos puestos */}
+            <Card className="space-y-3">
+              <CardHeader
+                titulo="Documento de autorización"
+                descripcion="Documento de tu plan con tus datos ya montados."
+                icono={<FileText className="size-5" aria-hidden />}
+                acciones={
+                  docUrl ? (
+                    <a
+                      href={docUrl}
+                      download="autorizacion.pdf"
+                      className="text-sm font-medium text-marca-600 hover:underline"
+                    >
+                      Descargar
+                    </a>
+                  ) : undefined
+                }
+              />
+              {cargandoDoc ? (
+                <div className="grid h-[50vh] place-items-center rounded-xl border border-tinta-200 bg-tinta-50">
+                  <div className="text-center">
+                    <Spinner className="mx-auto size-7" />
+                    <p className="mt-3 text-sm text-tinta-500">Generando tu documento…</p>
+                  </div>
+                </div>
+              ) : docUrl ? (
+                <iframe
+                  src={docUrl}
+                  title="Documento de autorización"
+                  className="h-[70vh] w-full rounded-xl border border-tinta-200 bg-tinta-100"
+                />
+              ) : (
+                <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600" aria-hidden />
+                  <p className="text-sm text-amber-800">{docMotivo}</p>
+                </div>
+              )}
+            </Card>
+
+            {/* Documentos que debe subir */}
+            <Card className="space-y-4">
+              <CardHeader
+                titulo="Documentos a subir"
+                descripcion="Sube una foto (cámara o galería) o un PDF de cada documento."
+                icono={<Upload className="size-5" aria-hidden />}
+                acciones={
+                  requisitos.length > 0 ? (
+                    <span className="rounded-full bg-tinta-100 px-2.5 py-1 text-xs font-semibold text-tinta-600">
+                      {requisitos.filter((r) => r.subido).length}/{requisitos.length}
+                    </span>
+                  ) : undefined
+                }
+              />
+              {requisitos.length === 0 ? (
+                <div className="grid h-24 place-items-center">
+                  <Spinner className="size-6" />
+                </div>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {requisitos.map((r) => (
+                    <FilaRequisito
+                      key={r.tipo}
+                      req={r}
+                      subiendo={subiendo === r.tipo}
+                      onSubir={(f) => void subir(r.tipo, f)}
+                    />
+                  ))}
+                </div>
+              )}
+            </Card>
+            </>
           )}
         </>
       )}
@@ -292,6 +443,64 @@ function fichaAEditable(a: AlumnoAutorizacion): DatosAlumno {
     direccion: a.direccion ?? undefined,
     ciudad: a.ciudad ?? undefined,
   };
+}
+
+function FilaRequisito({
+  req,
+  subiendo,
+  onSubir,
+}: {
+  req: Requisito;
+  subiendo: boolean;
+  onSubir: (archivo: File) => void;
+}) {
+  const input = useRef<HTMLInputElement>(null);
+  return (
+    <div
+      className={
+        'flex items-center justify-between gap-3 rounded-xl border p-3 transition-colors ' +
+        (req.subido ? 'border-emerald-200 bg-emerald-50/50' : 'border-tinta-200 bg-white')
+      }
+    >
+      <div className="flex min-w-0 items-center gap-3">
+        <span
+          className={
+            'grid size-9 shrink-0 place-items-center rounded-lg ' +
+            (req.subido ? 'bg-emerald-100 text-emerald-600' : 'bg-tinta-100 text-tinta-500')
+          }
+        >
+          {req.subido ? <Check className="size-5" aria-hidden /> : <FileText className="size-5" aria-hidden />}
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-tinta-800">{req.etiqueta}</p>
+          <p className={'text-xs ' + (req.subido ? 'text-emerald-600' : 'text-tinta-400')}>
+            {req.subido ? 'Subido' : 'Pendiente'}
+          </p>
+        </div>
+      </div>
+      <Button
+        variante={req.subido ? 'fantasma' : 'contorno'}
+        tamano="sm"
+        cargando={subiendo}
+        onClick={() => input.current?.click()}
+        iconoIzquierda={<Upload className="size-4" aria-hidden />}
+      >
+        {req.subido ? 'Cambiar' : 'Subir'}
+      </Button>
+      {/* accept sin capture: en móvil ofrece cámara/galería/archivos; en PC, archivos */}
+      <input
+        ref={input}
+        type="file"
+        accept="image/*,application/pdf"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          e.target.value = '';
+          if (f) onSubir(f);
+        }}
+      />
+    </div>
+  );
 }
 
 /** Quita cadenas vacías para no enviar campos en blanco. */

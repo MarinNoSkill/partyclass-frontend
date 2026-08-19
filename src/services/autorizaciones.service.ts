@@ -61,6 +61,12 @@ interface Ingreso {
   faltanDatos: boolean;
 }
 
+export interface Requisito {
+  tipo: string;
+  etiqueta: string;
+  subido: boolean;
+}
+
 export const autorizacionesService = {
   // --- Público -------------------------------------------------------------
   async validarDocumento(documento: string): Promise<EstadoDocumento> {
@@ -77,6 +83,12 @@ export const autorizacionesService = {
     );
     return data.data;
   },
+  async ingresar(documento: string): Promise<Ingreso> {
+    const { data } = await http.post<ApiRespuesta<Ingreso>>('/autorizaciones/ingresar', {
+      documento,
+    });
+    return data.data;
+  },
   async confirmarCodigo(documento: string, codigo: string): Promise<Ingreso> {
     const { data } = await http.post<ApiRespuesta<Ingreso>>(
       '/autorizaciones/confirmar-codigo',
@@ -90,6 +102,34 @@ export const autorizacionesService = {
       { token, datos },
     );
     return data.data;
+  },
+  async estadoDocumento(token: string): Promise<{ disponible: boolean; motivo?: string }> {
+    const { data } = await http.post<ApiRespuesta<{ disponible: boolean; motivo?: string }>>(
+      '/autorizaciones/documento-estado',
+      { token },
+    );
+    return data.data;
+  },
+  async documentoBlob(token: string): Promise<Blob> {
+    const { data } = await http.post('/autorizaciones/documento', { token }, {
+      responseType: 'blob',
+    });
+    return data as Blob;
+  },
+  async requisitos(token: string): Promise<Requisito[]> {
+    const { data } = await http.post<ApiRespuesta<Requisito[]>>('/autorizaciones/requisitos', {
+      token,
+    });
+    return data.data;
+  },
+  async cargar(token: string, tipo: string, archivo: File): Promise<void> {
+    const formulario = new FormData();
+    formulario.append('archivo', archivo);
+    formulario.append('token', token);
+    formulario.append('tipo', tipo);
+    await http.post('/autorizaciones/cargar', formulario, {
+      headers: { 'Content-Type': undefined },
+    });
   },
 
   // --- Admin: documentos permitidos ---------------------------------------
@@ -116,6 +156,7 @@ export const autorizacionesService = {
     const { data } = await http.post<ApiRespuesta<{ encontrados: number; lista: string[] }>>(
       '/admin/autorizaciones/permitidos/excel',
       formulario,
+      { headers: { 'Content-Type': undefined } },
     );
     return data.data;
   },
@@ -133,7 +174,56 @@ export const autorizacionesService = {
     const { data } = await http.post<ApiRespuesta<{ procesados: number; incompletos: number }>>(
       '/admin/autorizaciones/alumnos/excel',
       formulario,
+      { headers: { 'Content-Type': undefined } },
     );
     return data.data;
   },
+
+  // --- Admin: configuración de contratos por plan -------------------------
+  async obtenerConfig(planId: string): Promise<PlanConfig> {
+    const { data } = await http.get<ApiRespuesta<PlanConfig>>(
+      `/admin/autorizaciones/config/${planId}`,
+    );
+    return data.data;
+  },
+  async subirPlantilla(planId: string, archivo: File): Promise<PlanConfig> {
+    const formulario = new FormData();
+    formulario.append('archivo', archivo);
+    const { data } = await http.post<ApiRespuesta<PlanConfig>>(
+      `/admin/autorizaciones/config/${planId}/plantilla`,
+      formulario,
+      { headers: { 'Content-Type': undefined } },
+    );
+    return data.data;
+  },
+  async eliminarPlantilla(planId: string): Promise<PlanConfig> {
+    const { data } = await http.delete<ApiRespuesta<PlanConfig>>(
+      `/admin/autorizaciones/config/${planId}/plantilla`,
+    );
+    return data.data;
+  },
+  async agregarContrato(planId: string, etiqueta: string): Promise<ContratoRequerido[]> {
+    const { data } = await http.post<ApiRespuesta<ContratoRequerido[]>>(
+      `/admin/autorizaciones/config/${planId}/contratos`,
+      { etiqueta },
+    );
+    return data.data;
+  },
+  async eliminarContrato(id: string): Promise<void> {
+    await http.delete(`/admin/autorizaciones/config/contratos/${id}`);
+  },
 };
+
+export interface ContratoRequerido {
+  id: string;
+  plan_id: string;
+  clave: string;
+  etiqueta: string;
+  orden: number;
+}
+
+export interface PlanConfig {
+  tienePlantilla: boolean;
+  urlPlantilla?: string;
+  contratos: ContratoRequerido[];
+}
