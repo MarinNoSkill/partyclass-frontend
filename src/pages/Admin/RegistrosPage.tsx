@@ -5,6 +5,7 @@ import { Eye, FileSpreadsheet, Hash, Inbox, Search, Table2, Trash2 } from 'lucid
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { ConfiguracionContratos } from './ConfiguracionContratos';
+import { AutorizacionesCargas } from './AutorizacionesCargas';
 import { Badge, BadgeEstado } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Modal';
@@ -72,7 +73,7 @@ export function RegistrosPage() {
   const cerrarConfirmacion = () => setRegistroAEliminar(null);
 
   const [exportando, setExportando] = useState(false);
-  const [vista, setVista] = useState<'registros' | 'contratos'>('registros');
+  const [vista, setVista] = useState<'registros' | 'autorizaciones' | 'contratos'>('registros');
 
   const exportar = async () => {
     setExportando(true);
@@ -101,6 +102,7 @@ export function RegistrosPage() {
     <div className="mb-5 flex flex-wrap gap-1 rounded-xl border border-tinta-200 bg-tinta-50 p-1">
       {([
         { clave: 'registros', etiqueta: 'Registros' },
+        { clave: 'autorizaciones', etiqueta: 'Autorizaciones' },
         { clave: 'contratos', etiqueta: 'Configuración de contratos' },
       ] as const).map((t) => (
         <button
@@ -116,6 +118,8 @@ export function RegistrosPage() {
         </button>
       ))}
     </div>
+
+    {vista === 'autorizaciones' && <AutorizacionesCargas />}
 
     {vista === 'contratos' && <ConfiguracionContratos />}
 

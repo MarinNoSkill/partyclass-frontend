@@ -179,6 +179,20 @@ export const autorizacionesService = {
     return data.data;
   },
 
+  // --- Admin: cargas de documentos de los estudiantes ---------------------
+  async listarEstudiantesConCargas(): Promise<EstudianteConCargas[]> {
+    const { data } = await http.get<ApiRespuesta<EstudianteConCargas[]>>(
+      '/admin/autorizaciones/cargas',
+    );
+    return data.data;
+  },
+  async detalleEstudiante(documento: string): Promise<DetalleEstudiante> {
+    const { data } = await http.get<ApiRespuesta<DetalleEstudiante>>(
+      `/admin/autorizaciones/cargas/${encodeURIComponent(documento)}`,
+    );
+    return data.data;
+  },
+
   // --- Admin: configuración de contratos por plan -------------------------
   async obtenerConfig(planId: string): Promise<PlanConfig> {
     const { data } = await http.get<ApiRespuesta<PlanConfig>>(
@@ -226,4 +240,25 @@ export interface PlanConfig {
   tienePlantilla: boolean;
   urlPlantilla?: string;
   contratos: ContratoRequerido[];
+}
+
+export interface EstudianteConCargas {
+  numero_documento: string;
+  nombre: string;
+  total: number;
+  ultima: string;
+}
+
+export interface RequisitoAdmin {
+  tipo: string;
+  etiqueta: string;
+  subido: boolean;
+  mime: string | null;
+  creado_en: string | null;
+  url: string | null;
+}
+
+export interface DetalleEstudiante {
+  alumno: AlumnoAutorizacion;
+  requisitos: RequisitoAdmin[];
 }
