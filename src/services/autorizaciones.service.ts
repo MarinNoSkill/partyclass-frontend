@@ -168,14 +168,16 @@ export const autorizacionesService = {
     );
     return data.data;
   },
-  async cargarAlumnosExcel(archivo: File): Promise<{ procesados: number; incompletos: number }> {
+  async cargarAlumnosExcel(
+    archivo: File,
+  ): Promise<{ procesados: number; incompletos: number; sinPlan: number }> {
     const formulario = new FormData();
     formulario.append('archivo', archivo);
-    const { data } = await http.post<ApiRespuesta<{ procesados: number; incompletos: number }>>(
-      '/admin/autorizaciones/alumnos/excel',
-      formulario,
-      { headers: { 'Content-Type': undefined } },
-    );
+    const { data } = await http.post<
+      ApiRespuesta<{ procesados: number; incompletos: number; sinPlan: number }>
+    >('/admin/autorizaciones/alumnos/excel', formulario, {
+      headers: { 'Content-Type': undefined },
+    });
     return data.data;
   },
 

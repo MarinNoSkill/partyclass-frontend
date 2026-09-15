@@ -156,7 +156,7 @@ export function CargarEstudiantes() {
       const r = await autorizacionesService.cargarAlumnosExcel(archivo);
       exito(
         'Estudiantes cargados',
-        `${r.procesados} procesados · ${r.incompletos} con datos incompletos.`,
+        `${r.procesados} procesados · ${r.incompletos} incompletos · ${r.sinPlan} sin plan reconocido.`,
       );
     } catch (f) {
       errorToast('No se pudo cargar el Excel', mensajeDeError(f));
@@ -169,7 +169,7 @@ export function CargarEstudiantes() {
     <Card sinRelleno>
       <CardHeader
         titulo="Cargar estudiantes no registrados"
-        descripcion="Sube un Excel con el formato de la base (numero_documento, primer_nombre, primer_apellido, email, fecha_nacimiento…). Si falta algún dato, el estudiante lo completará al entrar."
+        descripcion="Sube el mismo Excel que exportas en Registros (Descargar Excel): reconoce las columnas Plan, Est. documento, Est. nombre completo, y los datos de Madre/Padre. Si falta algún dato, el estudiante lo completará al entrar."
         icono={<UserPlus className="size-5" aria-hidden />}
       />
 
@@ -193,8 +193,9 @@ export function CargarEstudiantes() {
           }}
         />
         <p className="text-xs text-tinta-500">
-          La primera fila debe tener los encabezados. Acepta alias como <code>documento</code>,{' '}
-          <code>nombre</code>, <code>correo</code>, <code>colegio</code>.
+          La primera fila debe tener los encabezados. Sirve tal cual el Excel exportado de
+          Registros; también acepta alias como <code>documento</code>, <code>nombre</code>,{' '}
+          <code>correo</code>, <code>colegio</code>. El plan se empareja por su nombre y año.
         </p>
       </div>
     </Card>

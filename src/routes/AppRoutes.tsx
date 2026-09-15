@@ -41,8 +41,10 @@ export function AppRoutes() {
         <Route path="representante" element={<RepresentantePage />} />
         {/* Firma remota: la abre el acudiente desde el correo. */}
         <Route path="firmar/:token" element={<FirmarPage />} />
-        {/* Módulo de autorizaciones (documento + código). */}
-        <Route path="autorizaciones" element={<AutorizacionesPage />} />
+        {/* Módulo de permisos/autorizaciones. Sin botón: se entra por /permisos. */}
+        <Route path="permisos" element={<AutorizacionesPage />} />
+        {/* Ruta anterior: mantiene los enlaces viejos funcionando. */}
+        <Route path="autorizaciones" element={<Navigate to="/permisos" replace />} />
         {/* Cualquier ruta pública desconocida vuelve al registro. */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
